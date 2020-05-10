@@ -1,2 +1,2 @@
 # ProtoPuddle++
-A simulator of cells world. A remake of the ProtoPuddle with an unique base of source code.
+A simulator of cells world. It is a remake of the original ProtoPuddle with an unique base of source code.
