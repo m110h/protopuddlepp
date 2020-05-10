@@ -191,6 +191,8 @@ struct Gene
         return *this;
     }
 
+    // todo: use enum instead wxString
+
     wxString name {""};
     wxString empty {"none"};
     wxString other {"none"};
