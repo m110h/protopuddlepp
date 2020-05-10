@@ -390,10 +390,10 @@ void Entity::Step()
 
 bool Entity::IsDead()
 {
-    return (age >= liveTime) || (energy <= 0);
+    return (age >= lifeTime) || (energy <= 0);
 }
 
-void Entity::Die() { age = liveTime; }
+void Entity::Die() { age = lifeTime; }
 int Entity::GetId() { return id; }
 
 void Entity::SetColor(const wxColor& _color) { color = _color; }
@@ -414,7 +414,7 @@ wxString Entity::Get(const wxString& name)
     if (name == wxString("age"))
         return wxString::Format(wxT("%d"), age);
     if (name == wxString("maxAge"))
-        return wxString::Format(wxT("%d"), liveTime);
+        return wxString::Format(wxT("%d"), lifeTime);
     if (name == wxString("energy"))
         return wxString::Format(wxT("%d"), energy);
 
@@ -483,7 +483,7 @@ Plant::Plant(World* _world): Entity(_world)
 {
     type = TYPE_PLANT;
     color = wxColor(43,168,74);
-    liveTime = world->GetProperties()->GetValue(wxString("plantLiveTime"));
+    lifeTime = world->GetProperties()->GetValue(wxString("plantLiveTime"));
 }
 
 Plant::~Plant() {}
@@ -505,7 +505,7 @@ void Plant::DrawSelected(wxDC* dc)
 Meat::Meat(World* _world): Entity(_world) {
     type = TYPE_MEAT;
     color = wxColor(205,83,59);
-    liveTime = world->GetProperties()->GetValue(wxString("meatLiveTime"));
+    lifeTime = world->GetProperties()->GetValue(wxString("meatLiveTime"));
 }
 
 Meat::~Meat() {}
@@ -537,7 +537,7 @@ Cell::Cell(World* _world): Entity(_world)
 {
     type = TYPE_CELL;
 
-    liveTime = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxAge")));
+    lifeTime = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxAge")));
     energy = world->GetProperties()->GetValue(wxString("cellEnergy"));
     divEnergy = effolkronium::random_static::get<int>(
         world->GetProperties()->GetValue(wxString("minEnergyForDivision")),
@@ -567,7 +567,7 @@ Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability)
     mutationProbability = _mutationProbability;
     energy = 0;
 
-    liveTime = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxAge")));
+    lifeTime = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxAge")));
 
     std::array<wxPoint, 8> directions { wxPoint(1,0), wxPoint(1,1), wxPoint(0,1), wxPoint(-1,1), wxPoint(-1,0), wxPoint(-1,-1), wxPoint(0,-1), wxPoint(1,-1) };
     direction = directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
@@ -873,7 +873,7 @@ wxString Cell::Get(const wxString& name)
     if (name == wxString("age"))
         return wxString::Format(wxT("%d"), age);
     if (name == wxString("maxAge"))
-        return wxString::Format(wxT("%d"), liveTime);
+        return wxString::Format(wxT("%d"), lifeTime);
     if (name == wxString("energy"))
         return wxString::Format(wxT("%d"), energy);
     if (name == wxString("divEnergy"))

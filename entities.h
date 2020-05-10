@@ -126,7 +126,7 @@ protected:
 
     int id {-1};
     int age {0};
-    int liveTime {0};
+    int lifeTime {0};
     int energy {1};
 
     World* world {nullptr};
