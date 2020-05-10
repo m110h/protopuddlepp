@@ -1,7 +1,6 @@
 #ifndef _ENTITIES_H_
 #define _ENTITIES_H_
 
-#include <vector>
 #include <list>
 
 #include "properties.h"
@@ -48,54 +47,19 @@ public:
 
     int GetNextId();
     int GetTopId();
-
-    int GetSteps() {
-        return steps;
-    }
+    int GetSteps();
 
     void New();
 
-    void SetPanelSize(const wxSize& size)
-    {
-        panelSize = size;
-    }
+    void SetPanelSize(const wxSize& size);
 
-    wxPoint WorldToPanel(const wxPoint& position)
-    {
-        wxRect bbb = GetBoardBoundingBox();
-        wxSize field = GetFieldSize(bbb);
-
-        return wxPoint(padding+field.GetWidth()*position.x, padding+field.GetHeight()*position.y);
-    }
-
-    wxPoint PanelToWorld(const wxPoint& position)
-    {
-        wxRect bbb = GetBoardBoundingBox();
-
-        if ( !bbb.Contains(position) )
-            return wxPoint(-1, -1);
-
-        wxSize field = GetFieldSize(bbb);
-
-        return wxPoint((position.x-padding)/field.GetWidth(), (position.y-padding)/field.GetHeight());
-    }
-
-    wxSize GetFieldSize(const wxRect& board)
-    {
-        return wxSize(board.GetWidth()/worldSize.GetWidth(), board.GetHeight()/worldSize.GetHeight());
-    }
-
-    wxRect GetBoardBoundingBox()
-    {
-        int w = panelSize.GetWidth() - padding*2 - (panelSize.GetWidth() % worldSize.GetWidth());
-        int h = panelSize.GetHeight() - padding*2 - (panelSize.GetHeight() % worldSize.GetHeight());
-
-        return wxRect(padding, padding, w, h);
-    }
-
+    wxPoint WorldToPanel(const wxPoint& position);
+    wxPoint PanelToWorld(const wxPoint& position);
+    wxSize GetFieldSize(const wxRect& board);
+    wxRect GetBoardBoundingBox();
     wxPoint GetEmptyPoint();
 
-    void AddEntity(Entity* e) { if (e) entities.push_front(e); }
+    void AddEntity(Entity* e);
 
 private:
     void DrawBoard(wxDC* dc);
@@ -124,106 +88,38 @@ private:
 class Entity
 {
 public:
-    Entity(World* _world): world(_world) {
-        id = world->GetNextId();
-    }
+    Entity(World* _world);
 
-    virtual ~Entity() {}
+    virtual ~Entity();
 
-    virtual void Step() = 0;
+    virtual void Step();
     virtual void Draw(wxDC* dc) = 0;
     virtual void DrawSelected(wxDC* dc) = 0;
 
-    bool IsDead()
-    {
-        return (age >= liveTime) || (energy <= 0);
-    }
+    bool IsDead();
 
-    void Die() { age = liveTime; }
+    void Die();
 
-    int GetId() { return id; }
+    int GetId();
 
-    void SetColor(const wxColor& _color) { color = _color; }
-    const wxColor& GetColor() const { return color; }
+    void SetColor(const wxColor& _color);
+    const wxColor& GetColor() const;
 
-    void SetPosition(const wxPoint& _position) { position = _position; }
-    const wxPoint& GetPosition() const { return position; }
+    void SetPosition(const wxPoint& _position);
+    const wxPoint& GetPosition() const;
 
-    EntityType GetType() { return type; }
+    EntityType GetType();
 
-    void SetEnergy(int _energy) { energy = _energy; }
-    int GetEnergy() { return energy; }
+    void SetEnergy(int _energy);
+    int GetEnergy();
 
-    virtual wxString Get(const wxString& name)
-    {
-        if (name == wxString("id"))
-            return wxString::Format(wxT("%d"), id);
-        if (name == wxString("age"))
-            return wxString::Format(wxT("%d"), age);
-        if (name == wxString("maxAge"))
-            return wxString::Format(wxT("%d"), liveTime);
-        if (name == wxString("energy"))
-            return wxString::Format(wxT("%d"), energy);
-
-        return unknownValueStr;
-    }
+    virtual wxString Get(const wxString& name);
 
 protected:
-    void SetSelectedBrushAndPen(wxDC* dc)
-    {
-        wxBrush brush;
-        wxPen pen;
-
-        brush.SetStyle(wxBRUSHSTYLE_CROSSDIAG_HATCH);
-        brush.SetColour(wxColor(255,255,255));
-
-        pen.SetColour(color);
-        pen.SetWidth(2);
-
-        dc->SetBrush(brush);
-        dc->SetPen(pen);
-    }
-
-    void SetNormalBrushAndPen(wxDC* dc)
-    {
-        wxBrush brush;
-        wxPen pen;
-
-        brush.SetStyle(wxBRUSHSTYLE_SOLID);
-        brush.SetColour(color);
-
-        pen.SetColour(color);
-
-        dc->SetBrush(brush);
-        dc->SetPen(pen);
-    }
-
-    void DrawCircle(wxDC* dc)
-    {
-        wxRect bbb = world->GetBoardBoundingBox();
-        wxSize field = world->GetFieldSize(bbb);
-
-        int radius = field.GetHeight()/3;
-
-        wxPoint p = world->WorldToPanel(position);
-        dc->DrawCircle(p.x+field.GetWidth()/2, p.y+field.GetHeight()/2, radius);
-    }
-
-    void DrawRectangle(wxDC* dc)
-    {
-        wxRect bbb = world->GetBoardBoundingBox();
-        wxSize field = world->GetFieldSize(bbb);
-
-        int w = int(field.GetWidth()*0.8f);
-        int h = int(field.GetHeight()*0.8f);
-
-        wxPoint p = world->WorldToPanel(position);
-
-        p.x += field.GetWidth()/2 - w/2;
-        p.y += field.GetHeight()/2 - h/2;
-
-        dc->DrawRectangle(p.x, p.y, w, h);
-    }
+    void SetSelectedBrushAndPen(wxDC* dc);
+    void SetNormalBrushAndPen(wxDC* dc);
+    void DrawCircle(wxDC* dc);
+    void DrawRectangle(wxDC* dc);
 
 protected:
     EntityType type {TYPE_NULL};
@@ -242,61 +138,21 @@ protected:
 class Plant: public Entity
 {
 public:
-    Plant(World* _world): Entity(_world) {
-        type = TYPE_PLANT;
-        color = wxColor(43,168,74);
-        liveTime = world->GetProperties()->GetValue(wxString("plantLiveTime"));
-    }
+    Plant(World* _world);
+    ~Plant();
 
-    ~Plant() {}
-
-    void Step() override
-    {
-        if (IsDead()) return;
-        age++;
-    }
-
-    void Draw(wxDC* dc) override
-    {
-        SetNormalBrushAndPen(dc);
-        DrawCircle(dc);
-    }
-
-    void DrawSelected(wxDC* dc) override
-    {
-        SetSelectedBrushAndPen(dc);
-        DrawCircle(dc);
-    }
+    void Draw(wxDC* dc) override;
+    void DrawSelected(wxDC* dc) override;
 };
 
 class Meat: public Entity
 {
 public:
-    Meat(World* _world): Entity(_world) {
-        type = TYPE_MEAT;
-        color = wxColor(205,83,59);
-        liveTime = world->GetProperties()->GetValue(wxString("meatLiveTime"));
-    }
+    Meat(World* _world);
+    ~Meat();
 
-    ~Meat() {}
-
-    void Step() override
-    {
-        if (IsDead()) return;
-        age++;
-    }
-
-    void Draw(wxDC* dc) override
-    {
-        SetNormalBrushAndPen(dc);
-        DrawCircle(dc);
-    }
-
-    void DrawSelected(wxDC* dc) override
-    {
-        SetSelectedBrushAndPen(dc);
-        DrawCircle(dc);
-    }
+    void Draw(wxDC* dc) override;
+    void DrawSelected(wxDC* dc) override;
 };
 
 

@@ -2,7 +2,6 @@
 #define _PROPERTIES_H_
 
 #include <map>
-#include <list>
 #include <wx/string.h>
 
 namespace ProtoPuddle

@@ -146,16 +146,63 @@ Entity* World::GetSelectedEntity()
 
 int World::GetNextId()
 {
-    // fix it
-    if (nextId < std::numeric_limits<int>::max())
-        nextId++;
+    if (nextId+1 == std::numeric_limits<int>::max())
+        nextId = 0;
 
-    return nextId;
+    return ++nextId;
 }
 
 int World::GetTopId()
 {
     return nextId;
+}
+
+int World::GetSteps()
+{
+   return steps;
+}
+
+void World::SetPanelSize(const wxSize& size)
+{
+    panelSize = size;
+}
+
+wxPoint World::WorldToPanel(const wxPoint& position)
+{
+    wxRect bbb = GetBoardBoundingBox();
+    wxSize field = GetFieldSize(bbb);
+
+    return wxPoint(padding+field.GetWidth()*position.x, padding+field.GetHeight()*position.y);
+}
+
+wxPoint World::PanelToWorld(const wxPoint& position)
+{
+    wxRect bbb = GetBoardBoundingBox();
+
+    if ( !bbb.Contains(position) )
+        return wxPoint(-1, -1);
+
+    wxSize field = GetFieldSize(bbb);
+
+    return wxPoint((position.x-padding)/field.GetWidth(), (position.y-padding)/field.GetHeight());
+}
+
+wxSize World::GetFieldSize(const wxRect& board)
+{
+    return wxSize(board.GetWidth()/worldSize.GetWidth(), board.GetHeight()/worldSize.GetHeight());
+}
+
+wxRect World::GetBoardBoundingBox()
+{
+    int w = panelSize.GetWidth() - padding*2 - (panelSize.GetWidth() % worldSize.GetWidth());
+    int h = panelSize.GetHeight() - padding*2 - (panelSize.GetHeight() % worldSize.GetHeight());
+
+    return wxRect(padding, padding, w, h);
+}
+
+void World::AddEntity(Entity* e)
+{
+    if (e) entities.push_front(e);
 }
 
 void World::DrawBoard(wxDC* dc)
@@ -327,9 +374,153 @@ void World::GetEntitiesQuantity(int& plants, int& meat, int& cells)
     }
 }
 
+// ENTITY CLASS
+Entity::Entity(World* _world): world(_world)
+{
+    id = world->GetNextId();
+}
+
+Entity::~Entity() {}
+
+void Entity::Step()
+{
+    if (IsDead()) return;
+    age++;
+}
+
+bool Entity::IsDead()
+{
+    return (age >= liveTime) || (energy <= 0);
+}
+
+void Entity::Die() { age = liveTime; }
+int Entity::GetId() { return id; }
+
+void Entity::SetColor(const wxColor& _color) { color = _color; }
+const wxColor& Entity::GetColor() const { return color; }
+
+void Entity::SetPosition(const wxPoint& _position) { position = _position; }
+const wxPoint& Entity::GetPosition() const { return position; }
+
+EntityType Entity::GetType() { return type; }
+
+void Entity::SetEnergy(int _energy) { energy = _energy; }
+int Entity::GetEnergy() { return energy; }
+
+wxString Entity::Get(const wxString& name)
+{
+    if (name == wxString("id"))
+        return wxString::Format(wxT("%d"), id);
+    if (name == wxString("age"))
+        return wxString::Format(wxT("%d"), age);
+    if (name == wxString("maxAge"))
+        return wxString::Format(wxT("%d"), liveTime);
+    if (name == wxString("energy"))
+        return wxString::Format(wxT("%d"), energy);
+
+    return unknownValueStr;
+}
+
+void Entity::SetSelectedBrushAndPen(wxDC* dc)
+{
+    wxBrush brush;
+    wxPen pen;
+
+    brush.SetStyle(wxBRUSHSTYLE_CROSSDIAG_HATCH);
+    brush.SetColour(wxColor(255,255,255));
+
+    pen.SetColour(color);
+    pen.SetWidth(2);
+
+    dc->SetBrush(brush);
+    dc->SetPen(pen);
+}
+
+void Entity::SetNormalBrushAndPen(wxDC* dc)
+{
+    wxBrush brush;
+    wxPen pen;
+
+    brush.SetStyle(wxBRUSHSTYLE_SOLID);
+    brush.SetColour(color);
+
+    pen.SetColour(color);
+
+    dc->SetBrush(brush);
+    dc->SetPen(pen);
+}
+
+void Entity::DrawCircle(wxDC* dc)
+{
+    wxRect bbb = world->GetBoardBoundingBox();
+    wxSize field = world->GetFieldSize(bbb);
+
+    int radius = field.GetHeight()/3;
+
+    wxPoint p = world->WorldToPanel(position);
+    dc->DrawCircle(p.x+field.GetWidth()/2, p.y+field.GetHeight()/2, radius);
+}
+
+void Entity::DrawRectangle(wxDC* dc)
+{
+    wxRect bbb = world->GetBoardBoundingBox();
+    wxSize field = world->GetFieldSize(bbb);
+
+    int w = int(field.GetWidth()*0.8f);
+    int h = int(field.GetHeight()*0.8f);
+
+    wxPoint p = world->WorldToPanel(position);
+
+    p.x += field.GetWidth()/2 - w/2;
+    p.y += field.GetHeight()/2 - h/2;
+
+    dc->DrawRectangle(p.x, p.y, w, h);
+}
+
 // PLANT CLASS
 
+Plant::Plant(World* _world): Entity(_world)
+{
+    type = TYPE_PLANT;
+    color = wxColor(43,168,74);
+    liveTime = world->GetProperties()->GetValue(wxString("plantLiveTime"));
+}
+
+Plant::~Plant() {}
+
+void Plant::Draw(wxDC* dc)
+{
+    SetNormalBrushAndPen(dc);
+    DrawCircle(dc);
+}
+
+void Plant::DrawSelected(wxDC* dc)
+{
+    SetSelectedBrushAndPen(dc);
+    DrawCircle(dc);
+}
+
 // MEAT CLASS
+
+Meat::Meat(World* _world): Entity(_world) {
+    type = TYPE_MEAT;
+    color = wxColor(205,83,59);
+    liveTime = world->GetProperties()->GetValue(wxString("meatLiveTime"));
+}
+
+Meat::~Meat() {}
+
+void Meat::Draw(wxDC* dc)
+{
+    SetNormalBrushAndPen(dc);
+    DrawCircle(dc);
+}
+
+void Meat::DrawSelected(wxDC* dc)
+{
+    SetSelectedBrushAndPen(dc);
+    DrawCircle(dc);
+}
 
 // CELL CLASS
 
@@ -399,9 +590,7 @@ Cell::~Cell()
 
 void Cell::Step()
 {
-    if (IsDead()) return;
-
-    age++;
+    Entity::Step();
 
     if (attacked)
     {
