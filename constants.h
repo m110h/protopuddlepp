@@ -3,8 +3,6 @@
 
 #include <wx/string.h>
 
-/* test modification */
-
 namespace ProtoPuddle
 {
 
