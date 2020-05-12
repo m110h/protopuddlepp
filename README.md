@@ -8,3 +8,6 @@ ProtoPuddle++ uses next external projects:
 
 ## Build
 You can use cmake for building, but it isn't crossplatform method yet. Only Windows is supported now. It will be changed very soon.
+
+## Screenshot
+![Image description](screenshots/main_window.jpg)
