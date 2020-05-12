@@ -2,7 +2,7 @@
 A simulator of cells world. It is a remake of the original ProtoPuddle with an unique base of source code.
 
 ## External
-ProtoPuddle++ uses next external projects:
+ProtoPuddle++ uses external projects enumerated below:
 1. https://github.com/wxWidgets/wxWidgets/releases/tag/v3.1.3
 2. https://github.com/effolkronium/random
 
