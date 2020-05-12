@@ -7,7 +7,7 @@ ProtoPuddle++ uses external projects enumerated below:
 2. https://github.com/effolkronium/random
 
 ## Build
-You can use cmake for building, but it isn't crossplatform method yet. Only Windows is supported now. It will be changed very soon.
+You can use cmake for building, but it isn't crossplatform method yet. Only Windows is supported at this moment, but it will be changed very soon.
 
 ## Screenshot
 ![Image description](screenshots/main_window.jpg)
