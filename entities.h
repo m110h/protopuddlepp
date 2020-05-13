@@ -10,15 +10,6 @@
 namespace ProtoPuddle
 {
 
-enum EntityType
-{
-    TYPE_NULL = 0,
-    TYPE_PLANT,
-    TYPE_MEAT,
-    TYPE_CELL,
-    TYPE_WALL
-};
-
 class Entity;
 
 class World
@@ -108,12 +99,21 @@ public:
     void SetPosition(const wxPoint& _position);
     const wxPoint& GetPosition() const;
 
-    EntityType GetType();
+    int GetType();
 
     void SetEnergy(int _energy);
     int GetEnergy();
 
     virtual wxString Get(const wxString& name);
+
+    // types for entities
+    enum
+    {
+        TYPE_PLANT = 1,
+        TYPE_MEAT,
+        TYPE_CELL,
+        TYPE_WALL
+    };
 
 protected:
     void SetSelectedBrushAndPen(wxDC* dc);
@@ -122,8 +122,7 @@ protected:
     void DrawRectangle(wxDC* dc);
 
 protected:
-    EntityType type {TYPE_NULL};
-
+    int type {0};
     int id {-1};
     int age {0};
     int lifeTime {0};

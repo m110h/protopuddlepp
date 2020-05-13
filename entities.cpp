@@ -319,12 +319,12 @@ void World::DeathHandle()
 
         if ( e && e->IsDead() )
         {
-            if ( e->GetType() == TYPE_PLANT || e->GetType() == TYPE_MEAT )
+            if ( e->GetType() == Entity::TYPE_PLANT || e->GetType() == Entity::TYPE_MEAT )
             {
                 delete e;
                 entities.erase(iter++);  // alternatively, iter = entities.erase(iter);
             }
-            else if ( e->GetType() == TYPE_CELL )
+            else if ( e->GetType() == Entity::TYPE_CELL )
             {
                 // don't forget about selected cells!
 
@@ -356,13 +356,13 @@ void World::GetEntitiesQuantity(int& plants, int& meat, int& cells)
         {
             switch (e->GetType())
             {
-            case TYPE_PLANT:
+            case Entity::TYPE_PLANT:
                 plants++;
                 break;
-            case TYPE_MEAT:
+            case Entity::TYPE_MEAT:
                 meat++;
                 break;
-            case TYPE_CELL:
+            case Entity::TYPE_CELL:
                 cells++;
                 break;
             default:
@@ -402,7 +402,7 @@ const wxColor& Entity::GetColor() const { return color; }
 void Entity::SetPosition(const wxPoint& _position) { position = _position; }
 const wxPoint& Entity::GetPosition() const { return position; }
 
-EntityType Entity::GetType() { return type; }
+int Entity::GetType() { return type; }
 
 void Entity::SetEnergy(int _energy) { energy = _energy; }
 int Entity::GetEnergy() { return energy; }
@@ -481,7 +481,7 @@ void Entity::DrawRectangle(wxDC* dc)
 
 Plant::Plant(World* _world): Entity(_world)
 {
-    type = TYPE_PLANT;
+    type = Entity::TYPE_PLANT;
     color = wxColor(43,168,74);
     lifeTime = world->GetProperties()->GetValue(wxString("plantLiveTime"));
 }
@@ -503,7 +503,7 @@ void Plant::DrawSelected(wxDC* dc)
 // MEAT CLASS
 
 Meat::Meat(World* _world): Entity(_world) {
-    type = TYPE_MEAT;
+    type = Entity::TYPE_MEAT;
     color = wxColor(205,83,59);
     lifeTime = world->GetProperties()->GetValue(wxString("meatLiveTime"));
 }
@@ -535,7 +535,7 @@ const std::array<wxString, 2> weakActions { wxString("turnl"), wxString("turnr")
 
 Cell::Cell(World* _world): Entity(_world)
 {
-    type = TYPE_CELL;
+    type = Entity::TYPE_CELL;
 
     lifeTime = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxAge")));
     energy = world->GetProperties()->GetValue(wxString("cellEnergy"));

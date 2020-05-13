@@ -335,7 +335,6 @@ private:
 
 enum
 {
-    ID_DRAW_PANEL_LEFT = 10000,
     ID_DRAW_PANEL = 10001,
     ID_MY_FRAME = 10002
 };
@@ -887,7 +886,7 @@ private:
         showGenesBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
             ProtoPuddle::Entity* e = world->GetSelectedEntity();
 
-            if (e && e->GetType() == ProtoPuddle::EntityType::TYPE_CELL)
+            if (e && e->GetType() == ProtoPuddle::Entity::TYPE_CELL)
             {
                 ProtoPuddle::Cell* c = dynamic_cast<ProtoPuddle::Cell*>(e);
                 GenesFrame* table = new GenesFrame(this, wxSize(500,400));
