@@ -8,22 +8,17 @@
 #include <wx/spinctrl.h>
 
 #include "propertiesdialog.h"
-#include "properties_singleton.h"
 #include "genesframe.h"
 #include "drawpanel.h"
 #include "entities.h"
 #include "constants.h"
 
-enum
-{
-    ID_DRAW_PANEL = 10001,
-    ID_MY_FRAME = 10002
-};
+#include "properties_singleton.h"
 
 class MyFrame: public wxFrame
 {
 public:
-    MyFrame(): wxFrame(nullptr, ID_MY_FRAME, wxT("ProtoPuddle++"), wxDefaultPosition, wxSize(800,600))
+    MyFrame(): wxFrame(nullptr, wxID_ANY, wxT("ProtoPuddle++"), wxDefaultPosition, wxSize(800,600))
     {
         MakeMenu();
         MakeStatusBar();
@@ -126,6 +121,9 @@ public:
             SetStatusText(wxT("Paused"), 0);
             SetStatusText(wxT("Simulation has been stopped"), 1);
         }
+        else {
+            SetStatusText(wxT("Simulation is already stopped"), 1);
+        }
     }
 
     void StartSimulation()
@@ -138,6 +136,9 @@ public:
 
             SetStatusText(wxT("Running"), 0);
             SetStatusText(wxT("Simulation has been started"), 1);
+        }
+        else {
+            SetStatusText(wxT("Simulation is already started"), 1);
         }
     }
 
@@ -503,7 +504,7 @@ private:
 
         topSizer->Add(new wxStaticLine(this, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL), 0, wxGROW);
 
-        worldView = new BasicDrawPanel(this, ID_DRAW_PANEL, wxSize(500, 500));
+        worldView = new BasicDrawPanel(this, wxID_ANY, wxSize(500, 500));
         topSizer->Add(worldView, 2, wxEXPAND, 0);
 
         this->SetSizer(topSizer);
@@ -529,6 +530,7 @@ private:
         {
             UpdateQuickSettings();
             PropertiesSingleton::getInstance().ResetUpdateFlag();
+            RestartSimulation();
         }
     }
 
@@ -543,7 +545,6 @@ private:
     */
 };
 
-// ***
 class MyApp: public wxApp
 {
 private:
@@ -552,6 +553,10 @@ private:
         if (!wxApp::OnInit()) return false;
 
         MyFrame* frame = new MyFrame;
+
+        wxImage::AddHandler(new wxPNGHandler());
+        frame->SetIcon(wxIcon("Resources/icon.png", wxBITMAP_TYPE_PNG));
+
         frame->Show();
 
         return true;

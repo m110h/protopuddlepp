@@ -140,7 +140,7 @@ private:
         { wxT("plantEnergy"), Property(30,1,100) },
         { wxT("meatEnergy"), Property(50,1,100) },
         { wxT("maxAge"), Property(500,1,1000) },
-        { wxT("stepsPerSecond"), Property(5,1,60) },
+        { wxT("stepsPerSecond"), Property(5,1,30) },
         { wxT("plantsPerStep"), Property(2,0,100) },
         { wxT("worldWidth"), Property(20,4,100) },
         { wxT("worldHeight"), Property(20,4,100) },
