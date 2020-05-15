@@ -144,8 +144,8 @@ private:
         { wxT("plantsPerStep"), Property(2,0,100) },
         { wxT("worldWidth"), Property(20,4,100) },
         { wxT("worldHeight"), Property(20,4,100) },
-        { wxT("plantLiveTime"), Property(20,5,1000) },
-        { wxT("meatLiveTime"), Property(20,5,1000) },
+        { wxT("plantLifeTime"), Property(20,5,1000) },
+        { wxT("meatLifeTime"), Property(20,5,1000) },
         { wxT("movementEnergy"), Property(1,1,10) },
         { wxT("attackEnergy"), Property(2,1,10) },
         { wxT("attackCondition"), Property(10,1,100) }

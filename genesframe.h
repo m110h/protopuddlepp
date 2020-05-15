@@ -21,6 +21,9 @@ public:
     bool Show(bool show = true) override;
 
 private:
+    wxString ActionToString(int action);
+
+private:
     wxGrid* genTable {nullptr};
 };
 

@@ -185,7 +185,7 @@ public:
 
 private:
     void Clone();
-    void Execute(const wxString& cmd);
+    void Execute(int cmd);
     Gene GenerateGene(const wxString& name);
 
     bool CanDivide();

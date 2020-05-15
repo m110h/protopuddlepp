@@ -53,9 +53,10 @@ void World::New()
 
 void World::Step()
 {
-    // fix it
     if (steps == std::numeric_limits<int>::max())
-        return;
+    {
+        steps = 0;
+    }
 
     for (Entity* e: entities)
     {
@@ -483,7 +484,7 @@ Plant::Plant(World* _world): Entity(_world)
 {
     type = Entity::TYPE_PLANT;
     color = wxColor(43,168,74);
-    lifeTime = world->GetProperties()->GetValue(wxString("plantLiveTime"));
+    lifeTime = world->GetProperties()->GetValue(wxString("plantLifeTime"));
 }
 
 Plant::~Plant() {}
@@ -505,7 +506,7 @@ void Plant::DrawSelected(wxDC* dc)
 Meat::Meat(World* _world): Entity(_world) {
     type = Entity::TYPE_MEAT;
     color = wxColor(205,83,59);
-    lifeTime = world->GetProperties()->GetValue(wxString("meatLiveTime"));
+    lifeTime = world->GetProperties()->GetValue(wxString("meatLifeTime"));
 }
 
 Meat::~Meat() {}
@@ -525,13 +526,13 @@ void Meat::DrawSelected(wxDC* dc)
 // CELL CLASS
 
 // sets of behavior
-const std::array<wxString, 4> emptyActions { wxString("turnl"), wxString("turnr"), wxString("move"), wxString("none") };
-const std::array<wxString, 3> otherActions { wxString("turnl"), wxString("turnr"), wxString("attack") };
-const std::array<wxString, 3> sameActions { wxString("turnl"), wxString("turnr"), wxString("attack") };
-const std::array<wxString, 4> meatActions { wxString("turnl"), wxString("turnr"), wxString("none"), wxString("eat") };
-const std::array<wxString, 4> plantActions { wxString("turnl"), wxString("turnr"), wxString("none"), wxString("eat") };
-const std::array<wxString, 2> wallActions { wxString("turnl"), wxString("turnr") };
-const std::array<wxString, 2> weakActions { wxString("turnl"), wxString("turnr") };
+const std::array<int, 4> emptyActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_MOVE, Gene::ACTION_NONE };
+const std::array<int, 3> otherActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_ATTACK };
+const std::array<int, 3> sameActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_ATTACK };
+const std::array<int, 4> meatActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_NONE, Gene::ACTION_EAT };
+const std::array<int, 4> plantActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_NONE, Gene::ACTION_EAT };
+const std::array<int, 2> wallActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
+const std::array<int, 2> weakActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
 
 Cell::Cell(World* _world): Entity(_world)
 {
@@ -720,7 +721,7 @@ void Cell::Clone()
         child->SetColor(color);
     }
 
-    Execute(wxString("move"));
+    Execute(Gene::ACTION_MOVE);
 
     energy /= 2;
     child->SetEnergy(energy);
@@ -738,9 +739,9 @@ int Cell::NormalizeCoord(int x)
     return 0;
 }
 
-void Cell::Execute(const wxString& cmd)
+void Cell::Execute(int cmd)
 {
-    if (cmd == wxString("turnl"))
+    if (cmd == Gene::ACTION_TURN_L)
     {
         int x = direction.x + direction.y;
         int y = direction.y - direction.x;
@@ -753,7 +754,7 @@ void Cell::Execute(const wxString& cmd)
         return;
     }
 
-    if (cmd == wxString("turnr"))
+    if (cmd == Gene::ACTION_TURN_R)
     {
         int x = direction.x - direction.y;
         int y = direction.x + direction.y;
@@ -766,7 +767,7 @@ void Cell::Execute(const wxString& cmd)
         return;
     }
 
-    if (cmd == wxString("move"))
+    if (cmd == Gene::ACTION_MOVE)
     {
         wxPoint p = position;
 
@@ -779,12 +780,12 @@ void Cell::Execute(const wxString& cmd)
         return;
     }
 
-    if (cmd == wxString("none"))
+    if (cmd == Gene::ACTION_NONE)
     {
         return;
     }
 
-    if (cmd == wxString("attack"))
+    if (cmd == Gene::ACTION_ATTACK)
     {
         wxPoint p = position;
 
@@ -810,7 +811,7 @@ void Cell::Execute(const wxString& cmd)
         return;
     }
 
-    if (cmd == wxString("eat"))
+    if (cmd == Gene::ACTION_EAT)
     {
         wxPoint p = position;
 

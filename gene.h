@@ -42,15 +42,24 @@ struct Gene
     }
 
     // todo: use enum instead wxString
+    enum
+    {
+        ACTION_NONE,
+        ACTION_TURN_L,
+        ACTION_TURN_R,
+        ACTION_MOVE,
+        ACTION_ATTACK,
+        ACTION_EAT
+    };
 
     wxString name {""};
-    wxString empty {"none"};
-    wxString other {"none"};
-    wxString same {"none"};
-    wxString meat {"none"};
-    wxString plant {"none"};
-    wxString wall {"none"};
-    wxString weak {"none"};
+    int empty {ACTION_NONE};
+    int other {ACTION_NONE};
+    int same {ACTION_NONE};
+    int meat {ACTION_NONE};
+    int plant {ACTION_NONE};
+    int wall {ACTION_NONE};
+    int weak {ACTION_NONE};
 };
 
 }

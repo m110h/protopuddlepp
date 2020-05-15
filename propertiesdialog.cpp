@@ -1,6 +1,5 @@
 #include "propertiesdialog.h"
 #include "properties_singleton.h"
-#include "customevents.h"
 
 PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
 {

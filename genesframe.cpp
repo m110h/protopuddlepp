@@ -52,13 +52,14 @@ bool GenesFrame::AddGene(const ProtoPuddle::Gene& g)
     int row = genTable->GetNumberRows() - 1;
 
     genTable->SetCellValue(row, 0, g.name);
-    genTable->SetCellValue(row, 1, g.empty);
-    genTable->SetCellValue(row, 2, g.other);
-    genTable->SetCellValue(row, 3, g.same);
-    genTable->SetCellValue(row, 4, g.meat);
-    genTable->SetCellValue(row, 5, g.plant);
-    genTable->SetCellValue(row, 6, g.wall);
-    genTable->SetCellValue(row, 7, g.weak);
+
+    genTable->SetCellValue(row, 1, ActionToString(g.empty));
+    genTable->SetCellValue(row, 2, ActionToString(g.other));
+    genTable->SetCellValue(row, 3, ActionToString(g.same));
+    genTable->SetCellValue(row, 4, ActionToString(g.meat));
+    genTable->SetCellValue(row, 5, ActionToString(g.plant));
+    genTable->SetCellValue(row, 6, ActionToString(g.wall));
+    genTable->SetCellValue(row, 7, ActionToString(g.weak));
 
     return true;
 }
@@ -67,3 +68,35 @@ bool GenesFrame::Show(bool show)
 {
     return wxFrame::Show(show);
 }
+
+wxString GenesFrame::ActionToString(int action)
+{
+    wxString str = "unknown";
+
+    switch (action)
+    {
+    case ProtoPuddle::Gene::ACTION_TURN_L:
+        str = "turnl";
+        break;
+    case ProtoPuddle::Gene::ACTION_TURN_R:
+        str = "turnr";
+        break;
+    case ProtoPuddle::Gene::ACTION_MOVE:
+        str = "move";
+        break;
+    case ProtoPuddle::Gene::ACTION_NONE:
+        str = "none";
+        break;
+    case ProtoPuddle::Gene::ACTION_ATTACK:
+        str = "attack";
+        break;
+    case ProtoPuddle::Gene::ACTION_EAT:
+        str = "eat";
+        break;
+    default:
+        break;
+    }
+
+    return str;
+}
+
