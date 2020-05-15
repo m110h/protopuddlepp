@@ -41,7 +41,7 @@ struct Gene
         return *this;
     }
 
-    // todo: use enum instead wxString
+    // a type of cell's action
     enum
     {
         ACTION_NONE,
