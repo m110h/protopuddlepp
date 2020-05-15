@@ -2,6 +2,7 @@
 #define _PROPERTIES_H_
 
 #include <map>
+#include <list>
 #include <wx/string.h>
 
 namespace ProtoPuddle
@@ -145,6 +146,8 @@ private:
         { wxT("worldHeight"), Property(20,4,100) },
         { wxT("plantLiveTime"), Property(20,5,1000) },
         { wxT("meatLiveTime"), Property(20,5,1000) },
+        { wxT("movementEnergy"), Property(1,1,10) },
+        { wxT("attackEnergy"), Property(2,1,10) },
         { wxT("attackCondition"), Property(10,1,100) }
     };
 };

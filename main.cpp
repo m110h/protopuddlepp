@@ -4,427 +4,20 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/dcbuffer.h>
-
-#include <wx/preferences.h>
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
-#include <wx/grid.h>
 
+#include "propertiesdialog.h"
+#include "properties_singleton.h"
+#include "genesframe.h"
+#include "drawpanel.h"
 #include "entities.h"
 #include "constants.h"
-
-class MyFrame;
-
-class MyApp: public wxApp
-{
-public:
-    const ProtoPuddle::GlobalProperties& GetProperties() const;
-    ProtoPuddle::GlobalProperties* GetPropertiesPtr();
-
-    void UpdateProperties(const ProtoPuddle::GlobalProperties& properties);
-
-    void ShowPropertiesEditor(wxWindow* parent);
-    void DismissPropertiesEditor();
-
-private:
-    bool OnInit() override;
-    int OnExit() override;
-
-private:
-    ProtoPuddle::GlobalProperties properties;
-    MyFrame *frame;
-
-    wxScopedPtr<wxPreferencesEditor> propertiesEditor;
-};
-
-IMPLEMENT_APP(MyApp)
-
-class PrefsPageGeneralPanel : public wxPanel
-{
-public:
-    PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
-    {
-        aliveCellsCtrl = new wxSpinCtrl(this, wxID_ANY);
-        cellEnergyCtrl = new wxSpinCtrl(this, wxID_ANY);
-        maxDamageCtrl = new wxSpinCtrl(this, wxID_ANY);
-        behaviorGenesCtrl = new wxSpinCtrl(this, wxID_ANY);
-        minEnergyForDivisionCtrl = new wxSpinCtrl(this, wxID_ANY);
-        maxEnergyForDivisionCtrl = new wxSpinCtrl(this, wxID_ANY);
-        plantsCtrl = new wxSpinCtrl(this, wxID_ANY);
-        plantEnergyCtrl = new wxSpinCtrl(this, wxID_ANY);
-        meatEnergyCtrl = new wxSpinCtrl(this, wxID_ANY);
-        maxAgeCtrl = new wxSpinCtrl(this, wxID_ANY);
-        stepsPerSecondCtrl = new wxSpinCtrl(this, wxID_ANY);
-        plantsPerStepCtrl = new wxSpinCtrl(this, wxID_ANY);
-        worldWidthCtrl = new wxSpinCtrl(this, wxID_ANY);
-        worldHeightCtrl = new wxSpinCtrl(this, wxID_ANY);
-
-        aliveCellsCtrl->SetRange(properties.GetMin(wxString("aliveCells")),properties.GetMax(wxString("aliveCells")));
-        cellEnergyCtrl->SetRange(properties.GetMin(wxString("cellEnergy")),properties.GetMax(wxString("cellEnergy")));
-        maxDamageCtrl->SetRange(properties.GetMin(wxString("maxDamage")),properties.GetMax(wxString("maxDamage")));
-        behaviorGenesCtrl->SetRange(properties.GetMin(wxString("behaviorGenes")),properties.GetMax(wxString("behaviorGenes")));
-        minEnergyForDivisionCtrl->SetRange(properties.GetMin(wxString("minEnergyForDivision")),properties.GetMax(wxString("minEnergyForDivision")));
-        maxEnergyForDivisionCtrl->SetRange(properties.GetMin(wxString("maxEnergyForDivision")),properties.GetMax(wxString("maxEnergyForDivision")));
-        plantsCtrl->SetRange(properties.GetMin(wxString("plants")),properties.GetMax(wxString("plants")));
-        plantEnergyCtrl->SetRange(properties.GetMin(wxString("plantEnergy")),properties.GetMax(wxString("plantEnergy")));
-        meatEnergyCtrl->SetRange(properties.GetMin(wxString("meatEnergy")),properties.GetMax(wxString("meatEnergy")));
-        maxAgeCtrl->SetRange(properties.GetMin(wxString("maxAge")),properties.GetMax(wxString("maxAge")));
-        stepsPerSecondCtrl->SetRange(properties.GetMin(wxString("stepsPerSecond")),properties.GetMax(wxString("stepsPerSecond")));
-        plantsPerStepCtrl->SetRange(properties.GetMin(wxString("plantsPerStep")),properties.GetMax(wxString("plantsPerStep")));
-        worldWidthCtrl->SetRange(properties.GetMin(wxString("worldWidth")),properties.GetMax(wxString("worldWidth")));
-        worldHeightCtrl->SetRange(properties.GetMin(wxString("worldHeight")),properties.GetMax(wxString("worldHeight")));
-
-        aliveCellsCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedAliveCells, this);
-        cellEnergyCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedCellEnergy, this);
-        maxDamageCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMaxDamage, this);
-        behaviorGenesCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedBehaviorGenes, this);
-        minEnergyForDivisionCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMinEnergyForDivision, this);
-        maxEnergyForDivisionCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMaxEnergyForDivision, this);
-        plantsCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedPlants, this);
-        plantEnergyCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedPlantEnergy, this);
-        meatEnergyCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMeatEnergy, this);
-        maxAgeCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMaxAge, this);
-        stepsPerSecondCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedStepsPerSecond, this);
-        plantsPerStepCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedPlantsPerStep, this);
-        worldWidthCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedWorldWidth, this);
-        worldHeightCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedWorldHeight, this);
-
-        wxGridSizer* propertiesSizer = new wxGridSizer(14, 2, 0, 0);
-
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Initial quantity of alive cells")), wxSizerFlags().Border());
-        propertiesSizer->Add(aliveCellsCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Initial cell's energy")), wxSizerFlags().Border());
-        propertiesSizer->Add(cellEnergyCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Max damage")), wxSizerFlags().Border());
-        propertiesSizer->Add(maxDamageCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Quantity of behavior genes")), wxSizerFlags().Border());
-        propertiesSizer->Add(behaviorGenesCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Min energy for division")), wxSizerFlags().Border());
-        propertiesSizer->Add(minEnergyForDivisionCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Max energy for division")), wxSizerFlags().Border());
-        propertiesSizer->Add(maxEnergyForDivisionCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Initial quantity of plants")), wxSizerFlags().Border());
-        propertiesSizer->Add(plantsCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Plants' energy")), wxSizerFlags().Border());
-        propertiesSizer->Add(plantEnergyCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Meat's energy")), wxSizerFlags().Border());
-        propertiesSizer->Add(meatEnergyCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Max cell's age")), wxSizerFlags().Border());
-        propertiesSizer->Add(maxAgeCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Steps per second")), wxSizerFlags().Border());
-        propertiesSizer->Add(stepsPerSecondCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Plants per step")), wxSizerFlags().Border());
-        propertiesSizer->Add(plantsPerStepCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Width of cell's world")), wxSizerFlags().Border());
-        propertiesSizer->Add(worldWidthCtrl, wxSizerFlags().Border().Expand());
-        propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Height of cell's world")), wxSizerFlags().Border());
-        propertiesSizer->Add(worldHeightCtrl, wxSizerFlags().Border().Expand());
-
-        SetSizerAndFit(propertiesSizer);
-    }
-
-    virtual bool TransferDataToWindow() override
-    {
-        properties = wxGetApp().GetProperties();
-
-        aliveCellsCtrl->SetValue(properties.GetValue(wxString("aliveCells")));
-        cellEnergyCtrl->SetValue(properties.GetValue(wxString("cellEnergy")));
-        maxDamageCtrl->SetValue(properties.GetValue(wxString("maxDamage")));
-        behaviorGenesCtrl->SetValue(properties.GetValue(wxString("behaviorGenes")));
-        minEnergyForDivisionCtrl->SetValue(properties.GetValue(wxString("minEnergyForDivision")));
-        maxEnergyForDivisionCtrl->SetValue(properties.GetValue(wxString("maxEnergyForDivision")));
-        plantsCtrl->SetValue(properties.GetValue(wxString("plants")));
-        plantEnergyCtrl->SetValue(properties.GetValue(wxString("plantEnergy")));
-        meatEnergyCtrl->SetValue(properties.GetValue(wxString("meatEnergy")));
-        maxAgeCtrl->SetValue(properties.GetValue(wxString("maxAge")));
-        stepsPerSecondCtrl->SetValue(properties.GetValue(wxString("stepsPerSecond")));
-        plantsPerStepCtrl->SetValue(properties.GetValue(wxString("plantsPerStep")));
-        worldWidthCtrl->SetValue(properties.GetValue(wxString("worldWidth")));
-        worldHeightCtrl->SetValue(properties.GetValue(wxString("worldHeight")));
-
-        return true;
-    }
-
-    virtual bool TransferDataFromWindow() override
-    {
-        // Called on platforms with modal preferences dialog to save and apply
-        // the changes.
-        wxGetApp().UpdateProperties(properties);
-        return true;
-    }
-
-private:
-    void UpdateSettingsIfNecessary()
-    {
-        return;
-        // On some platforms (OS X, GNOME), changes to preferences are applied
-        // immediately rather than after the OK or Apply button is pressed, so
-        // we need to take them into account as soon as they happen. On others
-        // (MSW), we need to wait until the changes are accepted by the user by
-        // pressing the "OK" button. To reuse the same code for both cases, we
-        // always update m_settingsCurrent object under all platforms, but only
-        // update the real application settings if necessary here.
-        //if ( wxPreferencesEditor::ShouldApplyChangesImmediately() )
-        //{
-            //wxGetApp().UpdateProperties(properties);
-            //wxMessageBox(wxT("UpdateSettingsIfNecessary"), wxT("Hook"), wxOK | wxICON_INFORMATION, this);
-        //}
-    }
-
-    void ChangedAliveCells(wxSpinEvent& e) {
-        properties.SetValue(wxString("aliveCells"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedCellEnergy(wxSpinEvent& e) {
-        properties.SetValue(wxString("cellEnergy"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedMaxDamage(wxSpinEvent& e) {
-        properties.SetValue(wxString("maxDamage"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedBehaviorGenes(wxSpinEvent& e) {
-        properties.SetValue(wxString("behaviorGenes"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedMinEnergyForDivision(wxSpinEvent& e) {
-        properties.SetValue(wxString("minEnergyForDivision"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedMaxEnergyForDivision(wxSpinEvent& e) {
-        properties.SetValue(wxString("maxEnergyForDivision"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedPlants(wxSpinEvent& e) {
-        properties.SetValue(wxString("plants"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedPlantEnergy(wxSpinEvent& e) {
-        properties.SetValue(wxString("plantEnergy"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedMeatEnergy(wxSpinEvent& e) {
-        properties.SetValue(wxString("meatEnergy"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedMaxAge(wxSpinEvent& e) {
-        properties.SetValue(wxString("maxAge"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedStepsPerSecond(wxSpinEvent& e) {
-        properties.SetValue(wxString("stepsPerSecond"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedPlantsPerStep(wxSpinEvent& e) {
-        properties.SetValue(wxString("plantsPerStep"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedWorldWidth(wxSpinEvent& e) {
-        properties.SetValue(wxString("worldWidth"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-    void ChangedWorldHeight(wxSpinEvent& e) {
-        properties.SetValue(wxString("worldHeight"), e.GetValue());
-        UpdateSettingsIfNecessary();
-    }
-
-private:
-    wxSpinCtrl* aliveCellsCtrl {nullptr};
-    wxSpinCtrl* cellEnergyCtrl {nullptr};
-    wxSpinCtrl* maxDamageCtrl {nullptr};
-    wxSpinCtrl* behaviorGenesCtrl {nullptr};
-    wxSpinCtrl* minEnergyForDivisionCtrl {nullptr};
-    wxSpinCtrl* maxEnergyForDivisionCtrl {nullptr};
-    wxSpinCtrl* plantsCtrl {nullptr};
-    wxSpinCtrl* plantEnergyCtrl {nullptr};
-    wxSpinCtrl* meatEnergyCtrl {nullptr};
-    wxSpinCtrl* maxAgeCtrl {nullptr};
-    wxSpinCtrl* stepsPerSecondCtrl {nullptr};
-    wxSpinCtrl* plantsPerStepCtrl {nullptr};
-    wxSpinCtrl* worldWidthCtrl {nullptr};
-    wxSpinCtrl* worldHeightCtrl {nullptr};
-
-    // Settings corresponding to the current values in this dialog.
-    ProtoPuddle::GlobalProperties properties;
-};
-
-class PrefsPageGeneral : public wxStockPreferencesPage
-{
-public:
-    PrefsPageGeneral() : wxStockPreferencesPage(Kind_General) {}
-    virtual wxWindow *CreateWindow(wxWindow *parent) override
-        { return new PrefsPageGeneralPanel(parent); }
-};
-
-
-class GenesFrame : public wxFrame
-{
-public:
-    GenesFrame(wxWindow *parent, const wxSize& size): wxFrame(parent, wxID_ANY, wxT("Genes"), wxDefaultPosition, size)
-    {
-        genTable = new wxGrid(this, wxID_ANY);
-
-        genTable->CreateGrid(0, 8);
-        genTable->SetRowLabelSize(0);
-        genTable->EnableEditing(false);
-        genTable->DisableDragGridSize();
-
-        genTable->SetDefaultCellAlignment(wxALIGN_CENTRE,wxALIGN_CENTRE);
-
-        genTable->SetColLabelValue(0, wxT("Name"));
-        genTable->SetColLabelValue(1, wxT("Empty"));
-        genTable->SetColLabelValue(2, wxT("Other"));
-        genTable->SetColLabelValue(3, wxT("Same"));
-        genTable->SetColLabelValue(4, wxT("Meat"));
-        genTable->SetColLabelValue(5, wxT("Plant"));
-        genTable->SetColLabelValue(6, wxT("Wall"));
-        genTable->SetColLabelValue(7, wxT("Weak"));
-
-        Layout();
-        // Fit(); //?
-
-        SetBackgroundColour( *wxWHITE );
-
-        /*
-        if (CanSetTransparent())
-        {
-            SetTransparent(wxByte(200));
-        }
-        */
-
-        //ToggleWindowStyle(wxRESIZE_BORDER);
-        ToggleWindowStyle(wxMAXIMIZE_BOX);
-    }
-
-    bool AddGene(const ProtoPuddle::Gene& g)
-    {
-        genTable->AppendRows(1);
-
-        int row = genTable->GetNumberRows() - 1;
-
-        genTable->SetCellValue(row, 0, g.name);
-        genTable->SetCellValue(row, 1, g.empty);
-        genTable->SetCellValue(row, 2, g.other);
-        genTable->SetCellValue(row, 3, g.same);
-        genTable->SetCellValue(row, 4, g.meat);
-        genTable->SetCellValue(row, 5, g.plant);
-        genTable->SetCellValue(row, 6, g.wall);
-        genTable->SetCellValue(row, 7, g.weak);
-
-        return true;
-    }
-
-    ~GenesFrame()
-    {
-        wxFrame* parent = dynamic_cast<wxFrame*>(GetParent());
-        if (parent)
-        {
-            parent->SetStatusText(wxT("Genes frame has been deleted"), 1);
-        }
-    }
-
-    bool Show(bool show = true) override
-    {
-        return wxFrame::Show(show);
-    }
-
-private:
-    wxGrid* genTable {nullptr};
-};
 
 enum
 {
     ID_DRAW_PANEL = 10001,
     ID_MY_FRAME = 10002
-};
-
-class BasicDrawPanel : public wxPanel
-{
-public:
-    BasicDrawPanel(wxWindow* parent, wxWindowID id, const wxSize& size): wxPanel(parent, id, wxDefaultPosition, size /*, wxBORDER_SIMPLE*/ )
-    {
-        SetBackgroundColour(*wxWHITE);
-    }
-
-    void onSize(wxSizeEvent& event)
-    {
-        //xUserScale = double(event.GetSize().GetWidth()) / double(originalSize.GetWidth());
-        //yUserScale = double(event.GetSize().GetHeight()) / double(originalSize.GetHeight());
-
-        if (world)
-            world->SetPanelSize(event.GetSize());
-
-        paintNow();
-
-        //event.Skip();
-    }
-
-    // some useful events
-    /*
-     void mouseMoved(wxMouseEvent& event) {}
-     void mouseDown(wxMouseEvent& event) {}
-     void mouseWheelMoved(wxMouseEvent& event) {}
-     void mouseReleased(wxMouseEvent& event) {}
-     void rightClick(wxMouseEvent& event) {}
-     void mouseLeftWindow(wxMouseEvent& event) {}
-     void keyPressed(wxKeyEvent& event) {}
-     void keyReleased(wxKeyEvent& event) {}
-     */
-
-    void mouseReleased(wxMouseEvent& event)
-    {
-        world->SelectEntityByPosition(world->PanelToWorld(event.GetPosition()));
-        paintNow();
-
-        wxPostEvent(GetParent(), event);
-
-        //if (selectedId != -1)
-        //    wxMessageBox(wxString::Format(wxT("X: %d; Y: %d;"), pos.x, pos.y), wxT("Mouse Click"), wxOK | wxICON_INFORMATION, this);
-    }
-
-    void paintNow()
-    {
-        wxClientDC dc(this);
-        wxBufferedDC bdc(&dc, dc.GetSize()); // for prevent flickering
-        softwareRender(&bdc);
-    }
-
-    void onPaint(wxPaintEvent & evt)
-    {
-        wxBufferedPaintDC dc(this);
-        softwareRender(&dc);
-    }
-
-    void SetWorld(ProtoPuddle::World* _world)
-    {
-        world = _world;
-    }
-
-private:
-    void softwareRender(wxDC* dc)
-    {
-        dc->Clear();
-
-        if (world)
-            world->Draw(dc);
-    }
-
-/*
-    void drawSizeText(wxDC* dc)
-    {
-        dc->DrawText(wxString::Format("Current size: %i %i", currentSize.GetX(), currentSize.GetY()), 10, 3);
-        dc->DrawText(wxString::Format("Original size: %i %i", originalSize.GetX(), originalSize.GetY()), 10, 15);
-    }
-*/
-
-    DECLARE_EVENT_TABLE()
-
-private:
-    double xUserScale {1.f};
-    double yUserScale {1.f};
-
-    ProtoPuddle::World* world {nullptr};
 };
 
 class MyFrame: public wxFrame
@@ -437,7 +30,7 @@ public:
         Setting();
         MakeLayout();
 
-        world = new ProtoPuddle::World(wxGetApp().GetPropertiesPtr());
+        world = new ProtoPuddle::World(PropertiesSingleton::getInstance().GetPropertiesPtr());
         world->New();
 
         if (worldView)
@@ -504,7 +97,7 @@ public:
     }
     void OnProperties(wxCommandEvent& event)
     {
-        wxGetApp().ShowPropertiesEditor(this);
+        ShowPropertiesEditor(this);
     }
 
     void OnDescription(wxCommandEvent& event)
@@ -525,17 +118,6 @@ public:
         myID_MENU_HELP_SHOW_DESCRIPTION
     };
 
-    void UpdateSettingsCtrls()
-    {
-        ProtoPuddle::GlobalProperties properties = wxGetApp().GetProperties();
-
-        spsSpinCtrl->SetValue(properties.GetValue(wxString("stepsPerSecond")));
-        ppsSpinCtrl->SetValue(properties.GetValue(wxString("plantsPerStep")));
-        peSpinCtrl->SetValue(properties.GetValue(wxString("plantEnergy")));
-        meSpinCtrl->SetValue(properties.GetValue(wxString("meatEnergy")));
-        mdSpinCtrl->SetValue(properties.GetValue(wxString("maxDamage")));
-    }
-
     void StopSimulation()
     {
         if (timer.IsRunning())
@@ -550,7 +132,7 @@ public:
     {
         if (!timer.IsRunning())
         {
-            ProtoPuddle::GlobalProperties properties = wxGetApp().GetProperties();
+            ProtoPuddle::GlobalProperties properties = PropertiesSingleton::getInstance().GetProperties();
 
             timer.Start(1000 / properties.GetValue(wxString("stepsPerSecond")));
 
@@ -612,10 +194,23 @@ private:
 
     wxButton* showGenesBtn {nullptr};
 
+    wxScopedPtr<wxPreferencesEditor> propertiesEditor;
+
     BasicDrawPanel* worldView {nullptr};
     ProtoPuddle::World* world {nullptr};
 
 private:
+    void UpdateQuickSettings()
+    {
+        ProtoPuddle::GlobalProperties* properties = PropertiesSingleton::getInstance().GetPropertiesPtr();
+
+        spsSpinCtrl->SetValue(properties->GetValue(wxString("stepsPerSecond")));
+        ppsSpinCtrl->SetValue(properties->GetValue(wxString("plantsPerStep")));
+        peSpinCtrl->SetValue(properties->GetValue(wxString("plantEnergy")));
+        meSpinCtrl->SetValue(properties->GetValue(wxString("meatEnergy")));
+        mdSpinCtrl->SetValue(properties->GetValue(wxString("maxDamage")));
+    }
+
     void UpdateInformation()
     {
         topIdText->SetLabel(wxString::Format(wxT("%d"), world->GetTopId()));
@@ -645,6 +240,7 @@ private:
             eatenMeatText->SetLabel(e->Get("eatenMeat"));
 
             // enable showGenesBtn if disabled
+            showGenesBtn->Enable();
         }
         else {
             idText->SetLabel(ProtoPuddle::unknownValueStr);
@@ -660,6 +256,7 @@ private:
             eatenMeatText->SetLabel(ProtoPuddle::unknownValueStr);
 
             // disable showGenesBtn if enabled
+            showGenesBtn->Disable();
         }
     }
 
@@ -675,7 +272,7 @@ private:
 
     void ApplySettings(wxCommandEvent& event)
     {
-        ProtoPuddle::GlobalProperties properties = wxGetApp().GetProperties();
+        ProtoPuddle::GlobalProperties properties = PropertiesSingleton::getInstance().GetProperties();
 
         properties.SetValue(wxString("stepsPerSecond"), spsSpinCtrl->GetValue());
         properties.SetValue(wxString("plantsPerStep"), ppsSpinCtrl->GetValue());
@@ -683,7 +280,7 @@ private:
         properties.SetValue(wxString("meatEnergy"), meSpinCtrl->GetValue());
         properties.SetValue(wxString("maxDamage"), mdSpinCtrl->GetValue());
 
-        wxGetApp().UpdateProperties(properties);
+        PropertiesSingleton::getInstance().UpdateProperties(properties);
 
         RestartSimulation();
 
@@ -779,7 +376,7 @@ private:
 
         // Settings Grop
 
-        ProtoPuddle::GlobalProperties properties = wxGetApp().GetProperties();
+        ProtoPuddle::GlobalProperties properties = PropertiesSingleton::getInstance().GetProperties();
 
         wxStaticBox* settingsGroupBox = new wxStaticBox(sw, wxID_ANY, "Settings");
         wxStaticBoxSizer * vSettingsSizer = new wxStaticBoxSizer (settingsGroupBox, wxVERTICAL);
@@ -806,7 +403,7 @@ private:
                 mdSpinCtrl->SetRange(properties.GetMin(wxString("maxDamage")) ,properties.GetMax(wxString("maxDamage")));
                 settingsSizer->Add(mdSpinCtrl, 1, wxEXPAND);
 
-            UpdateSettingsCtrls();
+            UpdateQuickSettings();
 
         vSettingsSizer->Add(settingsSizer, 0, wxEXPAND);
         vSettingsSizer->Add(new wxStaticLine(settingsGroupBox, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL), 0, wxGROW|wxTOP|wxBOTTOM, 10);
@@ -917,76 +514,53 @@ private:
     {
         SetMinSize(wxSize(800, 600));
     }
-};
 
-bool MyApp::OnInit()
-{
-    if (!wxApp::OnInit()) return false;
-
-    frame = new MyFrame;
-    frame->Show();
-
-    return true;
-}
-
-int MyApp::OnExit()
-{
-    return 0;
-}
-
-const ProtoPuddle::GlobalProperties& MyApp::GetProperties() const
-{
-    return properties;
-}
-
-ProtoPuddle::GlobalProperties* MyApp::GetPropertiesPtr()
-{
-    return &properties;
-}
-
-void MyApp::UpdateProperties(const ProtoPuddle::GlobalProperties& _properties)
-{
-    properties = _properties;
-
-    frame->UpdateSettingsCtrls();
-}
-
-void MyApp::ShowPropertiesEditor(wxWindow* parent)
-{
-    if ( !propertiesEditor )
+    void ShowPropertiesEditor(wxWindow* parent)
     {
-        propertiesEditor.reset(new wxPreferencesEditor(wxT("Properties")));
-        propertiesEditor->AddPage(new PrefsPageGeneral);
+        if ( !propertiesEditor )
+        {
+            propertiesEditor.reset(new wxPreferencesEditor(wxT("Properties")));
+            propertiesEditor->AddPage(new PrefsPageGeneral);
+        }
+
+        propertiesEditor->Show(parent);
+
+        if (PropertiesSingleton::getInstance().IsPropertiesUpdated())
+        {
+            UpdateQuickSettings();
+            PropertiesSingleton::getInstance().ResetUpdateFlag();
+        }
     }
 
-    propertiesEditor->Show(parent);
-}
-
-void MyApp::DismissPropertiesEditor()
-{
-    if ( propertiesEditor )
-        propertiesEditor->Dismiss();
-}
-
-BEGIN_EVENT_TABLE(BasicDrawPanel, wxPanel)
-    // some useful events
     /*
-    EVT_MOTION(BasicDrawPanel::mouseMoved)
-    EVT_LEFT_DOWN(BasicDrawPanel::mouseDown)
-    EVT_LEFT_UP(BasicDrawPanel::mouseReleased)
-    EVT_RIGHT_DOWN(BasicDrawPanel::rightClick)
-    EVT_LEAVE_WINDOW(BasicDrawPanel::mouseLeftWindow)
-    EVT_KEY_DOWN(BasicDrawPanel::keyPressed)
-    EVT_KEY_UP(BasicDrawPanel::keyReleased)
-    EVT_MOUSEWHEEL(BasicDrawPanel::mouseWheelMoved)
+    void DismissPropertiesEditor()
+    {
+        if ( propertiesEditor )
+        {
+            propertiesEditor->Dismiss();
+        }
+    }
     */
+};
 
-    EVT_LEFT_UP(BasicDrawPanel::mouseReleased)
+// ***
+class MyApp: public wxApp
+{
+private:
+    bool OnInit() override
+    {
+        if (!wxApp::OnInit()) return false;
 
-    // catch paint events
-    EVT_PAINT(BasicDrawPanel::onPaint)
+        MyFrame* frame = new MyFrame;
+        frame->Show();
 
-    // catch resize events
-    EVT_SIZE(BasicDrawPanel::onSize)
+        return true;
+    }
 
-END_EVENT_TABLE()
+    int OnExit() override
+    {
+        return 0;
+    }
+};
+
+IMPLEMENT_APP(MyApp)

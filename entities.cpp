@@ -722,8 +722,8 @@ void Cell::Clone()
 
     Execute(wxString("move"));
 
-    child->SetEnergy(energy/2);
     energy /= 2;
+    child->SetEnergy(energy);
 
     world->AddEntity(static_cast<Entity*>(child));
 
@@ -748,7 +748,7 @@ void Cell::Execute(const wxString& cmd)
         direction.x = NormalizeCoord(x);
         direction.y = NormalizeCoord(y);
 
-        energy--;
+        energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 
         return;
     }
@@ -761,7 +761,7 @@ void Cell::Execute(const wxString& cmd)
         direction.x = NormalizeCoord(x);
         direction.y = NormalizeCoord(y);
 
-        energy--;
+        energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 
         return;
     }
@@ -774,7 +774,7 @@ void Cell::Execute(const wxString& cmd)
 
         SetPosition(p);
 
-        energy--;
+        energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 
         return;
     }
@@ -800,7 +800,7 @@ void Cell::Execute(const wxString& cmd)
                 Execute(gen1.weak);
             else
             {
-                energy -= 2;
+                energy -= world->GetProperties()->GetValue(wxString("attackEnergy"));
 
                 if (c->IsDead())
                     killsCounter++;
