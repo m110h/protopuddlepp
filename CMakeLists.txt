@@ -25,7 +25,7 @@ endif()
 
 project(protopuddlexx VERSION 1.0.0 LANGUAGES CXX)
 
-set(sources main.cpp entities.cpp)
+set(sources main.cpp entities.cpp drawpanel.cpp genesframe.cpp propertiesdialog.cpp)
 
 add_executable(protopuddlexx ${sources})
 
