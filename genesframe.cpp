@@ -38,11 +38,13 @@ GenesFrame::GenesFrame(wxWindow *parent, const wxSize& size): wxFrame(parent, wx
 
 GenesFrame::~GenesFrame()
 {
+    /*
     wxFrame* parent = dynamic_cast<wxFrame*>(GetParent());
     if (parent)
     {
         parent->SetStatusText(wxT("Genes frame has been deleted"), 1);
     }
+    */
 }
 
 bool GenesFrame::AddGene(const ProtoPuddle::Gene& g)

@@ -7,9 +7,12 @@
 #include <wx/dcbuffer.h>
 
 #include "entities.h"
+#include "config.h"
 
 #include <array>
 #include <limits>
+#include <iomanip>
+#include <fstream>
 
 namespace ProtoPuddle
 {
@@ -47,8 +50,8 @@ void World::New()
     worldSize.SetWidth(properties->GetValue(wxString("worldWidth")));
     worldSize.SetHeight(properties->GetValue(wxString("worldHeight")));
 
-    GeneratePlants(properties->GetValue(wxString("plants")));
-    GenerateCells();
+    GeneratePlants( properties->GetValue(wxString("plants")) );
+    GenerateCells( properties->GetValue(wxString("sortsOfCell")) );
 }
 
 void World::Step()
@@ -58,15 +61,15 @@ void World::Step()
         steps = 0;
     }
 
+    DeathHandle();
+
+    GeneratePlants(properties->GetValue(wxString("plantsPerStep")));
+
     for (Entity* e: entities)
     {
         if (e)
             e->Step();
     }
-
-    DeathHandle();
-
-    GeneratePlants(properties->GetValue(wxString("plantsPerStep")));
 
     steps++;
 }
@@ -206,6 +209,71 @@ void World::AddEntity(Entity* e)
     if (e) entities.push_front(e);
 }
 
+bool World::OpenFromFile(const wxString& filename)
+{
+    std::ifstream in(filename.c_str().AsChar());
+
+    nlohmann::json config;
+
+    in >> config;
+    in.close();
+
+    properties->SetValue(wxString("sortsOfCell"), config["world"]["sortsOfCell"]);
+    properties->SetValue(wxString("cellEnergy"), config["world"]["cellEnergy"]);
+    properties->SetValue(wxString("maxDamage"), config["world"]["maxDamage"]);
+    properties->SetValue(wxString("behaviorGenes"), config["world"]["behaviorGenes"]);
+    properties->SetValue(wxString("minEnergyForDivision"), config["world"]["minEnergyForDivision"]);
+    properties->SetValue(wxString("maxEnergyForDivision"), config["world"]["maxEnergyForDivision"]);
+    properties->SetValue(wxString("plants"), config["world"]["plants"]);
+    properties->SetValue(wxString("plantEnergy"), config["world"]["plantEnergy"]);
+    properties->SetValue(wxString("meatEnergy"), config["world"]["meatEnergy"]);
+    properties->SetValue(wxString("maxAge"), config["world"]["maxAge"]);
+    properties->SetValue(wxString("stepsPerSecond"), config["world"]["stepsPerSecond"]);
+    properties->SetValue(wxString("plantsPerStep"), config["world"]["plantsPerStep"]);
+    properties->SetValue(wxString("worldWidth"), config["world"]["worldWidth"]);
+    properties->SetValue(wxString("worldHeight"), config["world"]["worldHeight"]);
+    properties->SetValue(wxString("plantLifeTime"), config["world"]["plantLifeTime"]);
+    properties->SetValue(wxString("meatLifeTime"), config["world"]["meatLifeTime"]);
+    properties->SetValue(wxString("movementEnergy"), config["world"]["movementEnergy"]);
+    properties->SetValue(wxString("attackEnergy"), config["world"]["attackEnergy"]);
+    properties->SetValue(wxString("attackCondition"), config["world"]["attackCondition"]);
+
+    return true;
+}
+
+bool World::SaveToFile(const wxString& filename)
+{
+    nlohmann::json config;
+
+    config["world"]["sortsOfCell"] = properties->GetValue(wxString("sortsOfCell"));
+    config["world"]["cellEnergy"] = properties->GetValue(wxString("cellEnergy"));
+    config["world"]["maxDamage"] = properties->GetValue(wxString("maxDamage"));
+    config["world"]["behaviorGenes"] = properties->GetValue(wxString("behaviorGenes"));
+    config["world"]["minEnergyForDivision"] = properties->GetValue(wxString("minEnergyForDivision"));
+    config["world"]["maxEnergyForDivision"] = properties->GetValue(wxString("maxEnergyForDivision"));
+    config["world"]["plants"] = properties->GetValue(wxString("plants"));
+    config["world"]["plantEnergy"] = properties->GetValue(wxString("plantEnergy"));
+    config["world"]["meatEnergy"] = properties->GetValue(wxString("meatEnergy"));
+    config["world"]["maxAge"] = properties->GetValue(wxString("maxAge"));
+    config["world"]["stepsPerSecond"] = properties->GetValue(wxString("stepsPerSecond"));
+    config["world"]["plantsPerStep"] = properties->GetValue(wxString("plantsPerStep"));
+    config["world"]["worldWidth"] = properties->GetValue(wxString("worldWidth"));
+    config["world"]["worldHeight"] = properties->GetValue(wxString("worldHeight"));
+    config["world"]["plantLifeTime"] = properties->GetValue(wxString("plantLifeTime"));
+    config["world"]["meatLifeTime"] = properties->GetValue(wxString("meatLifeTime"));
+    config["world"]["movementEnergy"] = properties->GetValue(wxString("movementEnergy"));
+    config["world"]["attackEnergy"] = properties->GetValue(wxString("attackEnergy"));
+    config["world"]["attackCondition"] = properties->GetValue(wxString("attackCondition"));
+
+    std::ofstream out(filename.c_str().AsChar());
+
+    out << std::setw(4) << config << std::endl;
+    out.close();
+
+    return true;
+}
+
+
 void World::DrawBoard(wxDC* dc)
 {
     wxBrush brush;
@@ -293,10 +361,8 @@ void World::GeneratePlants(int quantity)
     }
 }
 
-void World::GenerateCells()
+void World::GenerateCells(int quantity)
 {
-    int quantity = properties->GetValue(wxString("aliveCells"));
-
     for (int i=0; i<quantity; i++)
     {
         wxPoint p = GetEmptyPoint();

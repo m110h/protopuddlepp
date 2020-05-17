@@ -22,8 +22,8 @@ public:
     ~MyFrame();
 
     void OnNew(wxCommandEvent& event);
-    void OnOpen(wxCommandEvent& event);
-    void OnSave(wxCommandEvent& event);
+    void OnOpen(wxCommandEvent& WXUNUSED(event));
+    void OnSave(wxCommandEvent& WXUNUSED(event));
     void OnQuit(wxCommandEvent& event);
     void OnSimulation(wxCommandEvent& event);
     void OnStep(wxCommandEvent& event);
@@ -82,6 +82,7 @@ private:
     void UpdateQuickSettings();
     void UpdateInformation();
 
+    void NewWorld();
     void Step();
 
     void ApplySettings(wxCommandEvent& event);
@@ -127,7 +128,8 @@ MyFrame::~MyFrame() {
         delete world;
 }
 
-void MyFrame::OnNew(wxCommandEvent& event) {
+void MyFrame::NewWorld()
+{
     if (timer.IsRunning())
         timer.Stop();
 
@@ -141,15 +143,47 @@ void MyFrame::OnNew(wxCommandEvent& event) {
     SetStatusText(wxT("New action performed"), 1);
 }
 
-void MyFrame::OnOpen(wxCommandEvent& event) {
-    wxMessageBox(wxT("This will be realesed in the future"), wxT("Open"), wxOK | wxICON_INFORMATION, this);
-    SetStatusText(wxT("Open action performed"), 1);
+void MyFrame::OnNew(wxCommandEvent& event) {
+    NewWorld();
 }
-void MyFrame::OnSave(wxCommandEvent& event) {
-    wxMessageBox(wxT("This will be realesed in the future"), wxT("Save"), wxOK | wxICON_INFORMATION, this);
-    SetStatusText(wxT("Save action performed"), 1);
+
+void MyFrame::OnOpen(wxCommandEvent& WXUNUSED(event))
+{
+    wxString wildCard = "JavaScript Object Notation (*.json)|*.json;*.JSON";
+
+    //wildCard.Append("|Extensible Markup Language (*.xml)|*.xml;*.XML");
+    //wildCard.Append("|Initialization file (*.ini)|*.ini;*.INI");
+    //wildCard.Append("|Custom configuration file (*.cfg)|*.cfg;*.CFG");
+
+    wxFileDialog dlg(this, "Open", wxEmptyString, wxEmptyString, wildCard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        if (world->OpenFromFile(dlg.GetPath()))
+        {
+            NewWorld();
+            UpdateQuickSettings();
+        }
+    }
 }
-void MyFrame::OnQuit(wxCommandEvent& event) {
+
+void MyFrame::OnSave(wxCommandEvent& WXUNUSED(event))
+{
+    wxString wildCard = "JavaScript Object Notation (*.json)|*.json;*.JSON";
+
+    wxFileDialog dlg(this, "Save as", wxEmptyString, wxEmptyString, wildCard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        if (world->SaveToFile(dlg.GetPath()))
+        {
+            SetStatusText(wxT("Saved"), 1);
+        }
+    }
+}
+
+void MyFrame::OnQuit(wxCommandEvent& event)
+{
     Close(true);
 }
 
@@ -168,6 +202,7 @@ void MyFrame::OnShowLog(wxCommandEvent& event)
     wxMessageBox(wxT("This will be realesed in the future"), wxT("Log"), wxOK | wxICON_INFORMATION, this);
     SetStatusText(wxT("Show log action performed"), 1);
 }
+
 void MyFrame::OnProperties(wxCommandEvent& event)
 {
     ShowPropertiesEditor(this);
@@ -178,6 +213,7 @@ void MyFrame::OnDescription(wxCommandEvent& event)
     wxMessageBox(wxT("This will be realesed in the future"), wxT("Description"), wxOK | wxICON_INFORMATION, this);
     SetStatusText(wxT("Description action performed"), 1);
 }
+
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
     wxMessageBox(wxT("ProtoPuddle++, Version 1.0, developed by Alexey Orlov, 2020"), wxT("About"), wxOK | wxICON_INFORMATION, this);

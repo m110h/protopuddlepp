@@ -1,0 +1,23 @@
+{
+	"world": {
+		"sortsOfCell": 10,
+		"cellEnergy": 100,
+		"maxDamage": 30,
+		"behaviorGenes": 1,
+		"minEnergyForDivision": 50,
+		"maxEnergyForDivision": 100,
+		"plants": 0,
+		"plantEnergy": 30,
+		"meatEnergy": 50,
+		"maxAge": 300,
+		"stepsPerSecond": 10,
+		"plantsPerStep": 2,
+		"worldWidth": 20,
+		"worldHeight": 20,
+		"plantLifeTime": 20,
+		"meatLifeTime": 20,
+		"movementEnergy": 1,
+		"attackEnergy": 2,
+		"attackCondition": 10
+	}
+}

@@ -12,7 +12,7 @@
 #include "gene.h"
 #include "properties.h"
 #include "constants.h"
-#include "random.hpp"
+#include "random.h"
 
 namespace ProtoPuddle
 {
@@ -59,12 +59,15 @@ public:
 
     void AddEntity(Entity* e);
 
+    bool OpenFromFile(const wxString& filename);
+    bool SaveToFile(const wxString& filename);
+
 private:
     void DrawBoard(wxDC* dc);
     void DrawEntities(wxDC* dc);
 
     void GeneratePlants(int quantity);
-    void GenerateCells();
+    void GenerateCells(int quantity);
 
     void DeathHandle();
 

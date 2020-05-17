@@ -89,7 +89,9 @@ public:
         if (IsExist(name))
         {
             //_properties.erase(_properties.find(name));
-            _properties[name].value = value;
+
+            if (value >= _properties[name].min && value <= _properties[name].max)
+                _properties[name].value = value;
         }
     }
 
@@ -101,6 +103,15 @@ public:
         }
 
         return 0;
+    }
+
+    void SetRange(const wxString& name, int min, int max)
+    {
+        if (IsExist(name))
+        {
+            _properties[name].min = min;
+            _properties[name].max = max;
+        }
     }
 
     int GetMin(const wxString& name)
@@ -130,16 +141,16 @@ public:
 
 private:
     std::map<wxString,Property> _properties {
-        { wxT("aliveCells"), Property(5,1,100) },
+        { wxT("sortsOfCell"), Property(5,1,100) },
         { wxT("cellEnergy"), Property(100,1,100) },
-        { wxT("maxDamage"), Property(50,1,100) },
+        { wxT("maxDamage"), Property(30,1,100) },
         { wxT("behaviorGenes"), Property(1,1,10) },
         { wxT("minEnergyForDivision"), Property(50,1,1000) },
         { wxT("maxEnergyForDivision"), Property(100,1,1000) },
         { wxT("plants"), Property(0,0,100) },
         { wxT("plantEnergy"), Property(30,1,100) },
         { wxT("meatEnergy"), Property(50,1,100) },
-        { wxT("maxAge"), Property(500,1,1000) },
+        { wxT("maxAge"), Property(300,1,1000) },
         { wxT("stepsPerSecond"), Property(5,1,30) },
         { wxT("plantsPerStep"), Property(2,0,100) },
         { wxT("worldWidth"), Property(20,4,100) },

@@ -3,7 +3,7 @@
 
 PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
 {
-    aliveCellsCtrl = new wxSpinCtrl(this, wxID_ANY);
+    sortsOfCellCtrl = new wxSpinCtrl(this, wxID_ANY);
     cellEnergyCtrl = new wxSpinCtrl(this, wxID_ANY);
     maxDamageCtrl = new wxSpinCtrl(this, wxID_ANY);
     behaviorGenesCtrl = new wxSpinCtrl(this, wxID_ANY);
@@ -18,7 +18,7 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
     worldWidthCtrl = new wxSpinCtrl(this, wxID_ANY);
     worldHeightCtrl = new wxSpinCtrl(this, wxID_ANY);
 
-    aliveCellsCtrl->SetRange(properties.GetMin(wxString("aliveCells")),properties.GetMax(wxString("aliveCells")));
+    sortsOfCellCtrl->SetRange(properties.GetMin(wxString("sortsOfCell")),properties.GetMax(wxString("sortsOfCell")));
     cellEnergyCtrl->SetRange(properties.GetMin(wxString("cellEnergy")),properties.GetMax(wxString("cellEnergy")));
     maxDamageCtrl->SetRange(properties.GetMin(wxString("maxDamage")),properties.GetMax(wxString("maxDamage")));
     behaviorGenesCtrl->SetRange(properties.GetMin(wxString("behaviorGenes")),properties.GetMax(wxString("behaviorGenes")));
@@ -33,7 +33,7 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
     worldWidthCtrl->SetRange(properties.GetMin(wxString("worldWidth")),properties.GetMax(wxString("worldWidth")));
     worldHeightCtrl->SetRange(properties.GetMin(wxString("worldHeight")),properties.GetMax(wxString("worldHeight")));
 
-    aliveCellsCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedAliveCells, this);
+    sortsOfCellCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedSortsOfCell, this);
     cellEnergyCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedCellEnergy, this);
     maxDamageCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMaxDamage, this);
     behaviorGenesCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedBehaviorGenes, this);
@@ -50,8 +50,8 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
 
     wxGridSizer* propertiesSizer = new wxGridSizer(14, 2, 0, 0);
 
-    propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Initial quantity of alive cells")), wxSizerFlags().Border());
-    propertiesSizer->Add(aliveCellsCtrl, wxSizerFlags().Border().Expand());
+    propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Initial quantity of sorts")), wxSizerFlags().Border());
+    propertiesSizer->Add(sortsOfCellCtrl, wxSizerFlags().Border().Expand());
     propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Initial cell's energy")), wxSizerFlags().Border());
     propertiesSizer->Add(cellEnergyCtrl, wxSizerFlags().Border().Expand());
     propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Max damage")), wxSizerFlags().Border());
@@ -88,7 +88,7 @@ bool PrefsPageGeneralPanel::TransferDataToWindow()
 {
     properties = PropertiesSingleton::getInstance().GetProperties();
 
-    aliveCellsCtrl->SetValue(properties.GetValue(wxString("aliveCells")));
+    sortsOfCellCtrl->SetValue(properties.GetValue(wxString("sortsOfCell")));
     cellEnergyCtrl->SetValue(properties.GetValue(wxString("cellEnergy")));
     maxDamageCtrl->SetValue(properties.GetValue(wxString("maxDamage")));
     behaviorGenesCtrl->SetValue(properties.GetValue(wxString("behaviorGenes")));
@@ -131,8 +131,8 @@ void PrefsPageGeneralPanel::UpdateSettingsIfNecessary()
     //}
 }
 
-void PrefsPageGeneralPanel::ChangedAliveCells(wxSpinEvent& e) {
-    properties.SetValue(wxString("aliveCells"), e.GetValue());
+void PrefsPageGeneralPanel::ChangedSortsOfCell(wxSpinEvent& e) {
+    properties.SetValue(wxString("sortsOfCell"), e.GetValue());
     UpdateSettingsIfNecessary();
 }
 void PrefsPageGeneralPanel::ChangedCellEnergy(wxSpinEvent& e) {

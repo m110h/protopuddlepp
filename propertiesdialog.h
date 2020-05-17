@@ -23,7 +23,7 @@ public:
 private:
     void UpdateSettingsIfNecessary();
 
-    void ChangedAliveCells(wxSpinEvent& e);
+    void ChangedSortsOfCell(wxSpinEvent& e);
     void ChangedCellEnergy(wxSpinEvent& e);
     void ChangedMaxDamage(wxSpinEvent& e);
     void ChangedBehaviorGenes(wxSpinEvent& e);
@@ -39,7 +39,7 @@ private:
     void ChangedWorldHeight(wxSpinEvent& e);
 
 private:
-    wxSpinCtrl* aliveCellsCtrl {nullptr};
+    wxSpinCtrl* sortsOfCellCtrl {nullptr};
     wxSpinCtrl* cellEnergyCtrl {nullptr};
     wxSpinCtrl* maxDamageCtrl {nullptr};
     wxSpinCtrl* behaviorGenesCtrl {nullptr};
