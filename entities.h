@@ -78,7 +78,8 @@ private:
     int selectedId {-1};
     int steps {0};
 
-    int padding {30};
+    int paddingX {0};
+    int paddingY {0};
 
     GlobalProperties* properties {nullptr};
 

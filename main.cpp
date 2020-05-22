@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/aboutdlg.h>
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
 
@@ -216,7 +217,20 @@ void MyFrame::OnDescription(wxCommandEvent& event)
 
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
-    wxMessageBox(wxT("ProtoPuddle++, Version 1.0, developed by Alexey Orlov, 2020"), wxT("About"), wxOK | wxICON_INFORMATION, this);
+    wxAboutDialogInfo info;
+
+    info.SetIcon(wxIcon("resources/cell_icon_64x64.png", wxBITMAP_TYPE_PNG));
+
+    info.SetName(wxT("ProtoPuddle++"));
+    info.SetVersion(wxT("1.0"));
+    info.SetDescription(wxT(" A remake of the protopuddle cell's world simulator "));
+    info.SetWebSite(wxT("https://github.com/m110h/protopuddlepp"));
+
+    wxArrayString developers;
+    developers.Add(wxT("Orlov Alexey aka m110h"));
+    info.SetDevelopers(developers);
+
+    wxAboutBox(info);
 }
 
 void MyFrame::StopSimulation()
@@ -371,7 +385,7 @@ void MyFrame::MakeMenu()
 
     menuEdit->Append(myID_MENU_EDIT_SIMULATION, wxT("&Start/Stop Simulation\tCtrl+r"));
     menuEdit->Append(myID_MENU_EDIT_STEP, wxT("&One Step\tCtrl+x"));
-    menuEdit->Append(myID_MENU_EDIT_SHOW_LOG, wxT("Show &Log\tCtrl+l"));
+    //menuEdit->Append(myID_MENU_EDIT_SHOW_LOG, wxT("Show &Log\tCtrl+l"));
     menuEdit->Append(myID_MENU_EDIT_PROPERTIES, wxT("&Properties\tCtrl+p"));
 
     wxMenu* menuHelp = new wxMenu;
@@ -406,9 +420,9 @@ void MyFrame::MakeMenu()
         case myID_MENU_EDIT_STEP:
             OnStep(event);
             break;
-        case myID_MENU_EDIT_SHOW_LOG:
-            OnShowLog(event);
-            break;
+        //case myID_MENU_EDIT_SHOW_LOG:
+        //    OnShowLog(event);
+        //    break;
         case myID_MENU_EDIT_PROPERTIES:
             OnProperties(event);
             break;
@@ -438,7 +452,6 @@ void MyFrame::MakeLayout()
 {
     wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // wxDefaultPosition, wxDefaultSize
     wxScrolledWindow* sw = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(200,600));
     wxBoxSizer* vswSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -622,7 +635,7 @@ private:
         MyFrame* frame = new MyFrame;
 
         wxImage::AddHandler(new wxPNGHandler());
-        frame->SetIcon(wxIcon("Resources/icon.png", wxBITMAP_TYPE_PNG));
+        frame->SetIcon(wxIcon("resources/cell_icon.png", wxBITMAP_TYPE_PNG));
 
         frame->Show();
 

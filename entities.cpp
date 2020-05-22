@@ -61,8 +61,6 @@ void World::Step()
         steps = 0;
     }
 
-    DeathHandle();
-
     GeneratePlants(properties->GetValue(wxString("plantsPerStep")));
 
     for (Entity* e: entities)
@@ -70,6 +68,8 @@ void World::Step()
         if (e)
             e->Step();
     }
+
+    DeathHandle();
 
     steps++;
 }
@@ -176,7 +176,7 @@ wxPoint World::WorldToPanel(const wxPoint& position)
     wxRect bbb = GetBoardBoundingBox();
     wxSize field = GetFieldSize(bbb);
 
-    return wxPoint(padding+field.GetWidth()*position.x, padding+field.GetHeight()*position.y);
+    return wxPoint(paddingX+field.GetWidth()*position.x, paddingY+field.GetHeight()*position.y);
 }
 
 wxPoint World::PanelToWorld(const wxPoint& position)
@@ -188,7 +188,7 @@ wxPoint World::PanelToWorld(const wxPoint& position)
 
     wxSize field = GetFieldSize(bbb);
 
-    return wxPoint((position.x-padding)/field.GetWidth(), (position.y-padding)/field.GetHeight());
+    return wxPoint((position.x-paddingX)/field.GetWidth(), (position.y-paddingY)/field.GetHeight());
 }
 
 wxSize World::GetFieldSize(const wxRect& board)
@@ -198,10 +198,22 @@ wxSize World::GetFieldSize(const wxRect& board)
 
 wxRect World::GetBoardBoundingBox()
 {
+    int px = panelSize.GetWidth() % worldSize.GetWidth();
+    int py = panelSize.GetHeight() % worldSize.GetHeight();
+
+    int w = panelSize.GetWidth() - px;
+    int h = panelSize.GetHeight() - py;
+
+    paddingX = px/2;
+    paddingY = py/2;
+
+    return wxRect(paddingX, paddingY, w, h);
+/*
     int w = panelSize.GetWidth() - padding*2 - (panelSize.GetWidth() % worldSize.GetWidth());
     int h = panelSize.GetHeight() - padding*2 - (panelSize.GetHeight() % worldSize.GetHeight());
 
     return wxRect(padding, padding, w, h);
+*/
 }
 
 void World::AddEntity(Entity* e)
