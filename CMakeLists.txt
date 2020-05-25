@@ -23,11 +23,11 @@ else()
 	message("Configuration: ${CMAKE_BUILD_TYPE}")
 endif()
 
-project(protopuddlexx VERSION 1.0.0 LANGUAGES CXX)
+project(protopuddlexx VERSION 0.5.0 LANGUAGES CXX)
 
 set(sources main.cpp entities.cpp drawpanel.cpp genesframe.cpp propertiesdialog.cpp)
 
-add_executable(protopuddlexx ${sources})
+add_executable(protopuddlepp ${sources})
 
 # Define wxWidgets' root directory
 set(wxdir "d:/Development/Cpp/MyExamples/wx/wx/")
