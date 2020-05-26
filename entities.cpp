@@ -198,22 +198,20 @@ wxSize World::GetFieldSize(const wxRect& board)
 
 wxRect World::GetBoardBoundingBox()
 {
-    int px = panelSize.GetWidth() % worldSize.GetWidth();
-    int py = panelSize.GetHeight() % worldSize.GetHeight();
+    const int padding = 10;
 
-    int w = panelSize.GetWidth() - px;
-    int h = panelSize.GetHeight() - py;
+    wxSize tmp = panelSize - wxSize(padding*2,padding*2);
 
-    paddingX = px/2;
-    paddingY = py/2;
+    int px = tmp.GetWidth() % worldSize.GetWidth();
+    int py = tmp.GetHeight() % worldSize.GetHeight();
+
+    int w = tmp.GetWidth() - px;
+    int h = tmp.GetHeight() - py;
+
+    paddingX = padding + px/2;
+    paddingY = padding + py/2;
 
     return wxRect(paddingX, paddingY, w, h);
-/*
-    int w = panelSize.GetWidth() - padding*2 - (panelSize.GetWidth() % worldSize.GetWidth());
-    int h = panelSize.GetHeight() - padding*2 - (panelSize.GetHeight() % worldSize.GetHeight());
-
-    return wxRect(padding, padding, w, h);
-*/
 }
 
 void World::AddEntity(Entity* e)
