@@ -111,12 +111,20 @@ bool PrefsPageGeneralPanel::TransferDataToWindow()
 bool PrefsPageGeneralPanel::TransferDataFromWindow()
 {
     PropertiesSingleton::getInstance().UpdateProperties(properties);
+
+    if (showAdvice)
+    {
+        showAdvice = false;
+        wxMessageBox(wxT("Rebuild the world (use New) to take an effect"), wxT("Information"), wxOK | wxICON_INFORMATION, this);
+    }
+
     return true;
 }
 
 void PrefsPageGeneralPanel::UpdateSettingsIfNecessary()
 {
     return;
+
     // On some platforms (OS X, GNOME), changes to preferences are applied
     // immediately rather than after the OK or Apply button is pressed, so
     // we need to take them into account as soon as they happen. On others
@@ -134,6 +142,8 @@ void PrefsPageGeneralPanel::UpdateSettingsIfNecessary()
 void PrefsPageGeneralPanel::ChangedSortsOfCell(wxSpinEvent& e) {
     properties.SetValue(wxString("sortsOfCell"), e.GetValue());
     UpdateSettingsIfNecessary();
+
+    showAdvice = true;
 }
 void PrefsPageGeneralPanel::ChangedCellEnergy(wxSpinEvent& e) {
     properties.SetValue(wxString("cellEnergy"), e.GetValue());
@@ -158,6 +168,8 @@ void PrefsPageGeneralPanel::ChangedMaxEnergyForDivision(wxSpinEvent& e) {
 void PrefsPageGeneralPanel::ChangedPlants(wxSpinEvent& e) {
     properties.SetValue(wxString("plants"), e.GetValue());
     UpdateSettingsIfNecessary();
+
+    showAdvice = true;
 }
 void PrefsPageGeneralPanel::ChangedPlantEnergy(wxSpinEvent& e) {
     properties.SetValue(wxString("plantEnergy"), e.GetValue());
@@ -182,10 +194,14 @@ void PrefsPageGeneralPanel::ChangedPlantsPerStep(wxSpinEvent& e) {
 void PrefsPageGeneralPanel::ChangedWorldWidth(wxSpinEvent& e) {
     properties.SetValue(wxString("worldWidth"), e.GetValue());
     UpdateSettingsIfNecessary();
+
+    showAdvice = true;
 }
 void PrefsPageGeneralPanel::ChangedWorldHeight(wxSpinEvent& e) {
     properties.SetValue(wxString("worldHeight"), e.GetValue());
     UpdateSettingsIfNecessary();
+
+    showAdvice = true;
 }
 
 //

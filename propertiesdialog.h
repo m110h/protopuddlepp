@@ -54,6 +54,8 @@ private:
     wxSpinCtrl* worldWidthCtrl {nullptr};
     wxSpinCtrl* worldHeightCtrl {nullptr};
 
+    bool showAdvice {false};
+
     // Settings corresponding to the current values in this dialog.
     ProtoPuddle::GlobalProperties properties;
 };
