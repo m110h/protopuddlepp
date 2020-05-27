@@ -164,6 +164,11 @@ void MyFrame::OnOpen(wxCommandEvent& WXUNUSED(event))
         {
             NewWorld();
             UpdateQuickSettings();
+            SetStatusText(wxT("Configuration has been opened"), 1);
+        }
+        else
+        {
+            wxMessageBox(wxT("Can't load configuration file, because it isn't correct."), wxT("Error"), wxOK | wxICON_INFORMATION, this);
         }
     }
 }
@@ -178,7 +183,7 @@ void MyFrame::OnSave(wxCommandEvent& WXUNUSED(event))
     {
         if (world->SaveToFile(dlg.GetPath()))
         {
-            SetStatusText(wxT("Saved"), 1);
+            SetStatusText(wxT("Configuration has been saved"), 1);
         }
     }
 }

@@ -13,6 +13,7 @@
 #include "properties.h"
 #include "constants.h"
 #include "random.h"
+#include "config.h"
 
 namespace ProtoPuddle
 {
@@ -97,6 +98,9 @@ public:
     virtual void Step();
     virtual void Draw(wxDC* dc) = 0;
     virtual void DrawSelected(wxDC* dc) = 0;
+
+    //virtual nlohmann::json GetConfig() = 0;
+    //virtual bool SetConfig(const nlohmann::json& config) = 0;
 
     bool IsDead();
 

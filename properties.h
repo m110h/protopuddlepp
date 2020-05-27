@@ -142,8 +142,8 @@ public:
 private:
     std::map<wxString,Property> _properties {
         { wxT("sortsOfCell"), Property(5,1,100) },
-        { wxT("cellEnergy"), Property(100,1,100) },
-        { wxT("maxDamage"), Property(30,1,100) },
+        { wxT("cellEnergy"), Property(100,1,500) },
+        { wxT("maxDamage"), Property(30,1,500) },
         { wxT("behaviorGenes"), Property(1,1,10) },
         { wxT("minEnergyForDivision"), Property(50,1,1000) },
         { wxT("maxEnergyForDivision"), Property(100,1,1000) },
@@ -153,8 +153,8 @@ private:
         { wxT("maxAge"), Property(300,1,1000) },
         { wxT("stepsPerSecond"), Property(5,1,30) },
         { wxT("plantsPerStep"), Property(2,0,100) },
-        { wxT("worldWidth"), Property(20,4,100) },
-        { wxT("worldHeight"), Property(20,4,100) },
+        { wxT("worldWidth"), Property(20,4,60) },
+        { wxT("worldHeight"), Property(20,4,60) },
         { wxT("plantLifeTime"), Property(20,5,1000) },
         { wxT("meatLifeTime"), Property(20,5,1000) },
         { wxT("movementEnergy"), Property(1,1,10) },

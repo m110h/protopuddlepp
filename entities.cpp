@@ -7,12 +7,12 @@
 #include <wx/dcbuffer.h>
 
 #include "entities.h"
-#include "config.h"
 
 #include <array>
 #include <limits>
 #include <iomanip>
 #include <fstream>
+#include <exception>
 
 namespace ProtoPuddle
 {
@@ -225,7 +225,16 @@ bool World::OpenFromFile(const wxString& filename)
 
     nlohmann::json config;
 
-    in >> config;
+    try
+    {
+        in >> config;
+    }
+    catch (const std::exception& e)
+    {
+        in.close();
+        return false;
+    }
+
     in.close();
 
     properties->SetValue(wxString("sortsOfCell"), config["world"]["sortsOfCell"]);
