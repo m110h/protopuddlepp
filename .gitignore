@@ -31,8 +31,7 @@
 *.out
 *.app
 
-# Build
+# Directories
+realeses/
 build/
-
-# Tmp
 tmp/
