@@ -227,7 +227,7 @@ void MyFrame::OnAbout(wxCommandEvent& event)
     info.SetWebSite(wxT("https://github.com/m110h/protopuddlepp"));
 
     wxArrayString developers;
-    developers.Add(wxT("Orlov Alexey aka m110h"));
+    developers.Add(wxT("Alexey (aka m110h) Orlov"));
     info.SetDevelopers(developers);
 
     wxAboutBox(info);
