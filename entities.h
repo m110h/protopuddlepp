@@ -175,7 +175,7 @@ class Cell: public Entity
 {
 public:
     Cell(World* _world);
-    Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability);
+    Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability, const wxColor& _color, const Gene& _gene);
 
     ~Cell();
 
@@ -194,7 +194,11 @@ public:
 private:
     void Clone();
     void Execute(int cmd);
+
     Gene GenerateGene(const wxString& name);
+    Gene MutateGene(const Gene& _gene);
+
+    wxColor GenerateColor();
 
     bool CanDivide();
     void DrawDirection(wxDC* dc);

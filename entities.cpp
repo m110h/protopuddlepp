@@ -630,21 +630,16 @@ Cell::Cell(World* _world): Entity(_world)
         world->GetProperties()->GetValue(wxString("maxEnergyForDivision"))
     );
     damage = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxDamage")));
-    mutationProbability = effolkronium::random_static::get<int>(0,100);
+    mutationProbability = effolkronium::random_static::get<int>(0,50);
 
     std::array<wxPoint, 8> directions { wxPoint(1,0), wxPoint(1,1), wxPoint(0,1), wxPoint(-1,1), wxPoint(-1,0), wxPoint(-1,-1), wxPoint(0,-1), wxPoint(1,-1) };
     direction = directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
 
     gen1 = GenerateGene("gene1");
-
-    int r = effolkronium::random_static::get<int>(0, 128);
-    int g = effolkronium::random_static::get<int>(0, 128);
-    int b = effolkronium::random_static::get<int>(0, 128);
-
-    color = wxColor(r,g,b);
+    color = GenerateColor();
 }
 
-Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability): Entity(_world)
+Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability, const wxColor& _color, const Gene& _gene): Entity(_world)
 {
     type = TYPE_CELL;
 
@@ -658,15 +653,18 @@ Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability)
     std::array<wxPoint, 8> directions { wxPoint(1,0), wxPoint(1,1), wxPoint(0,1), wxPoint(-1,1), wxPoint(-1,0), wxPoint(-1,-1), wxPoint(0,-1), wxPoint(1,-1) };
     direction = directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
 
-    // mutation here!
+    auto mutation = effolkronium::random_static::get<bool>(mutationProbability/100.f);
 
-    gen1 = GenerateGene("gene1");
-
-    int r = effolkronium::random_static::get<int>(0, 128);
-    int g = effolkronium::random_static::get<int>(0, 128);
-    int b = effolkronium::random_static::get<int>(0, 128);
-
-    color = wxColor(r,g,b);
+    if (mutation)
+    {
+        gen1 = MutateGene(_gene);
+        color = GenerateColor();
+    }
+    else
+    {
+        gen1 = _gene;
+        color = _color;
+    }
 }
 
 Cell::~Cell()
@@ -794,17 +792,9 @@ void Cell::SetGene(const Gene& _gene)
 
 void Cell::Clone()
 {
-    Cell* child = new Cell(world, divEnergy, damage, mutationProbability);
+    Cell* child = new Cell(world, divEnergy, damage, mutationProbability, color, gen1);
 
     child->SetPosition(position);
-
-    auto mutation = effolkronium::random_static::get<bool>(mutationProbability/100.f);
-
-    if (!mutation)
-    {
-        child->SetGene(gen1);
-        child->SetColor(color);
-    }
 
     Execute(Gene::ACTION_MOVE);
 
@@ -927,17 +917,71 @@ void Cell::Execute(int cmd)
 
 Gene Cell::GenerateGene(const wxString& name)
 {
-    Gene g(name);
+    Gene newGene(name);
 
-    g.empty = emptyActions[effolkronium::random_static::get<int>(0, emptyActions.size()-1)];
-    g.other = otherActions[effolkronium::random_static::get<int>(0, otherActions.size()-1)];
-    g.same = sameActions[effolkronium::random_static::get<int>(0, sameActions.size()-1)];
-    g.meat = meatActions[effolkronium::random_static::get<int>(0, meatActions.size()-1)];
-    g.plant = plantActions[effolkronium::random_static::get<int>(0, plantActions.size()-1)];
-    g.wall = wallActions[effolkronium::random_static::get<int>(0, wallActions.size()-1)];
-    g.weak = weakActions[effolkronium::random_static::get<int>(0, weakActions.size()-1)];
+    newGene.empty = emptyActions[effolkronium::random_static::get<int>(0, emptyActions.size()-1)];
+    newGene.other = otherActions[effolkronium::random_static::get<int>(0, otherActions.size()-1)];
+    newGene.same = sameActions[effolkronium::random_static::get<int>(0, sameActions.size()-1)];
+    newGene.meat = meatActions[effolkronium::random_static::get<int>(0, meatActions.size()-1)];
+    newGene.plant = plantActions[effolkronium::random_static::get<int>(0, plantActions.size()-1)];
+    newGene.wall = wallActions[effolkronium::random_static::get<int>(0, wallActions.size()-1)];
+    newGene.weak = weakActions[effolkronium::random_static::get<int>(0, weakActions.size()-1)];
 
-    return g;
+    return newGene;
+}
+
+Gene Cell::MutateGene(const Gene& _gene)
+{
+    Gene newGene = _gene;
+
+    enum
+    {
+        EMPTY = 0,
+        OTHER,
+        SAME,
+        MEAT,
+        PLANT,
+        WALL,
+        WEAK
+    };
+
+    switch (effolkronium::random_static::get<int>(EMPTY, WEAK))
+    {
+    case EMPTY:
+        newGene.empty = emptyActions[effolkronium::random_static::get<int>(0, emptyActions.size()-1)];
+        break;
+    case OTHER:
+        newGene.other = otherActions[effolkronium::random_static::get<int>(0, otherActions.size()-1)];
+        break;
+    case SAME:
+        newGene.same = sameActions[effolkronium::random_static::get<int>(0, sameActions.size()-1)];
+        break;
+    case MEAT:
+        newGene.meat = meatActions[effolkronium::random_static::get<int>(0, meatActions.size()-1)];
+        break;
+    case PLANT:
+        newGene.plant = plantActions[effolkronium::random_static::get<int>(0, plantActions.size()-1)];
+        break;
+    case WALL:
+        newGene.wall = wallActions[effolkronium::random_static::get<int>(0, wallActions.size()-1)];
+        break;
+    case WEAK:
+        newGene.weak = weakActions[effolkronium::random_static::get<int>(0, weakActions.size()-1)];
+        break;
+    default:
+        break;
+    }
+
+    return newGene;
+}
+
+wxColor Cell::GenerateColor()
+{
+    int r = effolkronium::random_static::get<int>(0, 128);
+    int g = effolkronium::random_static::get<int>(0, 128);
+    int b = effolkronium::random_static::get<int>(0, 128);
+
+    return wxColor(r,g,b);
 }
 
 bool Cell::CanDivide()
