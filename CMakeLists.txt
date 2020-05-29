@@ -23,7 +23,7 @@ else()
 	message("Configuration: ${CMAKE_BUILD_TYPE}")
 endif()
 
-project(protopuddlepp VERSION 0.5.0 LANGUAGES CXX)
+project(protopuddlepp VERSION 0.5.1 LANGUAGES CXX)
 
 set(sources main.cpp entities.cpp drawpanel.cpp genesframe.cpp propertiesdialog.cpp)
 

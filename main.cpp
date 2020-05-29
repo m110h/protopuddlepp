@@ -216,7 +216,7 @@ void MyFrame::OnProperties(wxCommandEvent& event)
 
 void MyFrame::OnDescription(wxCommandEvent& event)
 {
-    wxMessageBox(wxT("This will be realesed in the future"), wxT("Description"), wxOK | wxICON_INFORMATION, this);
+    wxMessageBox(wxT("This will be released in the future"), wxT("Description"), wxOK | wxICON_INFORMATION, this);
     SetStatusText(wxT("Description action performed"), 1);
 }
 
@@ -227,7 +227,7 @@ void MyFrame::OnAbout(wxCommandEvent& event)
     info.SetIcon(wxIcon("resources/cell_icon_64x64.png", wxBITMAP_TYPE_PNG));
 
     info.SetName(wxT("ProtoPuddle++"));
-    info.SetVersion(wxT("0.5.0"));
+    info.SetVersion(wxT("0.5.1"));
     info.SetDescription(wxT(" A remake of the protopuddle cell's world simulator "));
     info.SetWebSite(wxT("https://github.com/m110h/protopuddlepp"));
 
