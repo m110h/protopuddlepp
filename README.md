@@ -10,5 +10,8 @@ ProtoPuddle++ uses external projects enumerated below:
 ## Build
 You can use cmake for building, but it isn't crossplatform method yet. Only Windows is supported at this moment, but it will be changed very soon.
 
+## Binary
+An early binary release for Windows 64 bit is available. Download it from [this page](https://github.com/m110h/protopuddlepp/releases).
+
 ## Screenshot
 ![Image description](screenshots/main_window.jpg)
