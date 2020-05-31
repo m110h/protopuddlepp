@@ -41,6 +41,7 @@ public:
         myID_MENU_HELP_SHOW_DESCRIPTION
     };
 
+    bool IsSimulationRunning();
     void StopSimulation();
     void StartSimulation();
     void RestartSimulation();
@@ -200,7 +201,8 @@ void MyFrame::OnSimulation(wxCommandEvent& event)
 
 void MyFrame::OnStep(wxCommandEvent& event)
 {
-    Step();
+    if (!IsSimulationRunning())
+        Step();
 }
 
 void MyFrame::OnShowLog(wxCommandEvent& event)
@@ -236,6 +238,11 @@ void MyFrame::OnAbout(wxCommandEvent& event)
     info.SetDevelopers(developers);
 
     wxAboutBox(info);
+}
+
+bool MyFrame::IsSimulationRunning()
+{
+    return timer.IsRunning();
 }
 
 void MyFrame::StopSimulation()
@@ -302,13 +309,11 @@ void MyFrame::UpdateInformation()
 {
     topIdText->SetLabel(wxString::Format(wxT("%d"), world->GetTopId()));
 
-    int pc {0}; int mc {0}; int cc {0};
+    auto [p, m, c] = world->GetEntitiesQuantity();
 
-    world->GetEntitiesQuantity(pc, mc, cc);
-
-    cellsCountText->SetLabel(wxString::Format(wxT("%d"), cc));
-    plantsCountText->SetLabel(wxString::Format(wxT("%d"), pc));
-    meatCountText->SetLabel(wxString::Format(wxT("%d"), mc));
+    plantsCountText->SetLabel(wxString::Format(wxT("%d"), p));
+    meatCountText->SetLabel(wxString::Format(wxT("%d"), m));
+    cellsCountText->SetLabel(wxString::Format(wxT("%d"), c));
 
     ProtoPuddle::Entity* e = world->GetSelectedEntity();
 

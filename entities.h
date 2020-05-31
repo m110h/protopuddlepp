@@ -8,6 +8,7 @@
 #endif
 
 #include <list>
+#include <tuple>
 
 #include "gene.h"
 #include "properties.h"
@@ -40,7 +41,7 @@ public:
     void SelectEntityByPosition(const wxPoint& worldPosition);
     Entity* GetSelectedEntity();
 
-    void GetEntitiesQuantity(int& plants, int& meat, int& cells);
+    std::tuple<int, int, int> GetEntitiesQuantity();
 
     bool IsInside(const wxPoint& worldPosition);
 

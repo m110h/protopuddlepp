@@ -432,8 +432,12 @@ void World::DeathHandle()
     }
 }
 
-void World::GetEntitiesQuantity(int& plants, int& meat, int& cells)
+std::tuple<int, int, int> World::GetEntitiesQuantity()
 {
+    int plants {0};
+    int meat {0};
+    int cells {0};
+
     auto iter = entities.begin();
 
     while (iter != entities.end())
@@ -460,6 +464,8 @@ void World::GetEntitiesQuantity(int& plants, int& meat, int& cells)
 
         ++iter;
     }
+
+    return { plants, meat, cells };
 }
 
 // ENTITY CLASS
