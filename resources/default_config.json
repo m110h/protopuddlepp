@@ -18,6 +18,7 @@
 		"meatLifeTime": 20,
 		"movementEnergy": 1,
 		"attackEnergy": 2,
-		"attackCondition": 10
+		"attackCondition": 10,
+		"maxMutationProbability": 50
 	}
 }

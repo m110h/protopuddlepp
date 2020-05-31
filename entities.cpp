@@ -256,6 +256,7 @@ bool World::OpenFromFile(const wxString& filename)
     properties->SetValue(wxString("movementEnergy"), config["world"]["movementEnergy"]);
     properties->SetValue(wxString("attackEnergy"), config["world"]["attackEnergy"]);
     properties->SetValue(wxString("attackCondition"), config["world"]["attackCondition"]);
+    properties->SetValue(wxString("maxMutationProbability"), config["world"]["maxMutationProbability"]);
 
     return true;
 }
@@ -283,6 +284,7 @@ bool World::SaveToFile(const wxString& filename)
     config["world"]["movementEnergy"] = properties->GetValue(wxString("movementEnergy"));
     config["world"]["attackEnergy"] = properties->GetValue(wxString("attackEnergy"));
     config["world"]["attackCondition"] = properties->GetValue(wxString("attackCondition"));
+    config["world"]["maxMutationProbability"] = properties->GetValue(wxString("maxMutationProbability"));
 
     std::ofstream out(filename.c_str().AsChar());
 
@@ -386,7 +388,7 @@ void World::GenerateCells(int quantity)
     {
         wxPoint p = GetEmptyPoint();
 
-        if (p.x >= 0 && p.y >= 0)
+        if ( (p.x >= 0) && (p.y >= 0) )
         {
             Cell* tmp = new Cell(this);
             tmp->SetPosition(p);
@@ -623,14 +625,27 @@ Cell::Cell(World* _world): Entity(_world)
 {
     type = Entity::TYPE_CELL;
 
-    lifeTime = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxAge")));
+    lifeTime = effolkronium::random_static::get<int>(
+        1,
+        world->GetProperties()->GetValue(wxString("maxAge"))
+    );
+
     energy = world->GetProperties()->GetValue(wxString("cellEnergy"));
+
     divEnergy = effolkronium::random_static::get<int>(
         world->GetProperties()->GetValue(wxString("minEnergyForDivision")),
         world->GetProperties()->GetValue(wxString("maxEnergyForDivision"))
     );
-    damage = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxDamage")));
-    mutationProbability = effolkronium::random_static::get<int>(0,50);
+
+    damage = effolkronium::random_static::get<int>(
+        1,
+        world->GetProperties()->GetValue(wxString("maxDamage"))
+    );
+
+    mutationProbability = effolkronium::random_static::get<int>(
+        0,
+        world->GetProperties()->GetValue(wxString("maxMutationProbability"))
+    );
 
     std::array<wxPoint, 8> directions { wxPoint(1,0), wxPoint(1,1), wxPoint(0,1), wxPoint(-1,1), wxPoint(-1,0), wxPoint(-1,-1), wxPoint(0,-1), wxPoint(1,-1) };
     direction = directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
