@@ -1,24 +1,24 @@
 {
-	"world": {
-		"sortsOfCell": 10,
-		"cellEnergy": 100,
-		"maxDamage": 30,
-		"behaviorGenes": 1,
-		"minEnergyForDivision": 50,
-		"maxEnergyForDivision": 100,
-		"plants": 0,
-		"plantEnergy": 30,
-		"meatEnergy": 50,
-		"maxAge": 300,
-		"stepsPerSecond": 10,
-		"plantsPerStep": 2,
-		"worldWidth": 20,
-		"worldHeight": 20,
-		"plantLifeTime": 20,
-		"meatLifeTime": 20,
-		"movementEnergy": 1,
-		"attackEnergy": 2,
-		"attackCondition": 10,
-		"maxMutationProbability": 50
-	}
+    "world": {
+        "attackCondition": 10,
+        "attackEnergy": 2,
+        "behaviorGenes": 1,
+        "cellEnergy": 100,
+        "maxAge": 300,
+        "maxDamage": 30,
+        "maxEnergyForDivision": 100,
+        "maxMutationProbability": 50,
+        "meatEnergy": 50,
+        "meatLifeTime": 20,
+        "minEnergyForDivision": 50,
+        "movementEnergy": 1,
+        "plantEnergy": 30,
+        "plantLifeTime": 20,
+        "plants": 0,
+        "plantsPerStep": 2,
+        "sortsOfCell": 5,
+        "stepsPerSecond": 30,
+        "worldHeight": 20,
+        "worldWidth": 20
+    }
 }
