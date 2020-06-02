@@ -8,6 +8,7 @@
 #endif
 
 #include <wx/dcbuffer.h>
+#include <wx/graphics.h>
 
 #include "entities.h"
 
@@ -37,17 +38,11 @@ public:
 private:
     void softwareRender(wxDC* dc);
 
-/*
-    void drawSizeText(wxDC* dc)
-    {
-        dc->DrawText(wxString::Format("Current size: %i %i", currentSize.GetX(), currentSize.GetY()), 10, 3);
-        dc->DrawText(wxString::Format("Original size: %i %i", originalSize.GetX(), originalSize.GetY()), 10, 15);
-    }
-*/
-
     DECLARE_EVENT_TABLE()
 
 private:
+    wxGraphicsRenderer* renderer {nullptr};
+
     double xUserScale {1.f};
     double yUserScale {1.f};
 

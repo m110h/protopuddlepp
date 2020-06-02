@@ -142,24 +142,24 @@ public:
 private:
     std::map<wxString,Property> _properties {
         { wxT("sortsOfCell"), Property(5,1,100) },
-        { wxT("cellEnergy"), Property(100,1,500) },
+        { wxT("cellEnergy"), Property(100,1,1000) },
         { wxT("maxDamage"), Property(30,1,500) },
         { wxT("behaviorGenes"), Property(1,1,10) },
         { wxT("minEnergyForDivision"), Property(50,1,1000) },
         { wxT("maxEnergyForDivision"), Property(100,1,1000) },
         { wxT("plants"), Property(0,0,100) },
-        { wxT("plantEnergy"), Property(30,1,100) },
-        { wxT("meatEnergy"), Property(50,1,100) },
+        { wxT("plantEnergy"), Property(30,1,500) },
+        { wxT("meatEnergy"), Property(50,1,500) },
         { wxT("maxAge"), Property(300,1,1000) },
         { wxT("stepsPerSecond"), Property(5,1,60) },
         { wxT("plantsPerStep"), Property(2,0,100) },
-        { wxT("worldWidth"), Property(20,4,100) },
-        { wxT("worldHeight"), Property(20,4,100) },
+        { wxT("worldWidth"), Property(20,4,80) },
+        { wxT("worldHeight"), Property(20,4,80) },
         { wxT("plantLifeTime"), Property(20,1,1000) },
         { wxT("meatLifeTime"), Property(20,1,1000) },
-        { wxT("movementEnergy"), Property(1,1,10) },
-        { wxT("attackEnergy"), Property(2,1,10) },
-        { wxT("attackCondition"), Property(10,1,100) },
+        { wxT("movementEnergy"), Property(1,1,100) },
+        { wxT("attackEnergy"), Property(2,1,100) },
+        { wxT("attackCondition"), Property(10,1,500) },
         { wxT("maxMutationProbability"), Property(50,0,100) }
     };
 };

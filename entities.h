@@ -7,6 +7,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <vector>
 #include <list>
 #include <tuple>
 
@@ -57,16 +58,21 @@ public:
     wxPoint PanelToWorld(const wxPoint& position);
     wxSize GetFieldSize(const wxRect& board);
     wxRect GetBoardBoundingBox();
-    wxPoint GetEmptyPoint();
 
     void AddEntity(Entity* e);
 
     bool OpenFromFile(const wxString& filename);
     bool SaveToFile(const wxString& filename);
 
+    bool TakeEmptyPoint(const wxPoint& point);
+    wxPoint TakeRandomEmptyPoint();
+    void ReturnPoint(const wxPoint& point);
+
 private:
     void DrawBoard(wxDC* dc);
     void DrawEntities(wxDC* dc);
+
+    void GenerateEmptyPoints();
 
     void GeneratePlants(int quantity);
     void GenerateCells(int quantity);
@@ -74,6 +80,7 @@ private:
     void DeathHandle();
 
 private:
+    std::vector<wxPoint> emptyPoints;
     std::list<Entity*> entities;
 
     int nextId {0};

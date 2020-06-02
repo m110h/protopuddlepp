@@ -31,6 +31,8 @@ World::~World()
     }
 
     entities.clear();
+
+    emptyPoints.clear();
 }
 
 void World::New()
@@ -49,6 +51,8 @@ void World::New()
 
     worldSize.SetWidth(properties->GetValue(wxString("worldWidth")));
     worldSize.SetHeight(properties->GetValue(wxString("worldHeight")));
+
+    GenerateEmptyPoints();
 
     GeneratePlants( properties->GetValue(wxString("plants")) );
     GenerateCells( properties->GetValue(wxString("sortsOfCell")) );
@@ -342,9 +346,9 @@ void World::DrawEntities(wxDC* dc)
         se->DrawSelected(dc);
 }
 
-wxPoint World::GetEmptyPoint()
+void World::GenerateEmptyPoints()
 {
-    std::vector<wxPoint> emptyPoints;
+    emptyPoints.clear();
 
     for (int i=0; i<worldSize.GetWidth(); i++)
     {
@@ -358,42 +362,82 @@ wxPoint World::GetEmptyPoint()
             }
         }
     }
-
-    if (emptyPoints.empty())
-        return wxPoint(-1,-1);
-
-    int index = effolkronium::random_static::get<int>(0, emptyPoints.size()-1);
-
-    return emptyPoints[index];
 }
+
+bool World::TakeEmptyPoint(const wxPoint& point)
+{
+    auto it (std::find(emptyPoints.begin(), emptyPoints.end(), point));
+
+    if (it != emptyPoints.end())
+    {
+        *it = std::move(emptyPoints.back());
+        emptyPoints.pop_back();
+
+        return true;
+    }
+
+    return false;
+}
+
+wxPoint World::TakeRandomEmptyPoint()
+{
+    wxPoint point(-1,-1);
+
+    if (emptyPoints.size()>0)
+    {
+        auto index = effolkronium::random_static::get<int>(0, emptyPoints.size()-1);
+        point = emptyPoints[index];
+
+        emptyPoints[index] = std::move(emptyPoints.back());
+        emptyPoints.pop_back();
+    }
+
+    return point;
+}
+
+void World::ReturnPoint(const wxPoint& point)
+{
+    emptyPoints.push_back(point);
+}
+
 
 void World::GeneratePlants(int quantity)
 {
-    for (int i=0; i<quantity; i++)
+    while ( quantity>0 )
     {
-        wxPoint p = GetEmptyPoint();
+        wxPoint point = TakeRandomEmptyPoint();
 
-        if (p.x >= 0 && p.y >= 0)
+        if (point.x>=0 && point.y>=0)
         {
             Plant* tmp = new Plant(this);
-            tmp->SetPosition(p);
+            tmp->SetPosition(point);
             entities.push_back((Entity*)tmp);
         }
+        else {
+            break;
+        }
+
+        quantity--;
     }
 }
 
 void World::GenerateCells(int quantity)
 {
-    for (int i=0; i<quantity; i++)
+    while ( quantity>0 )
     {
-        wxPoint p = GetEmptyPoint();
+        wxPoint point = TakeRandomEmptyPoint();
 
-        if ( (p.x >= 0) && (p.y >= 0) )
+        if (point.x>=0 && point.y>=0)
         {
             Cell* tmp = new Cell(this);
-            tmp->SetPosition(p);
+            tmp->SetPosition(point);
             entities.push_back((Entity*)tmp);
         }
+        else {
+            break;
+        }
+
+        quantity--;
     }
 }
 
@@ -409,6 +453,7 @@ void World::DeathHandle()
         {
             if ( e->GetType() == Entity::TYPE_PLANT || e->GetType() == Entity::TYPE_MEAT )
             {
+                ReturnPoint(e->GetPosition());
                 delete e;
                 entities.erase(iter++);  // alternatively, iter = entities.erase(iter);
             }
@@ -813,18 +858,24 @@ void Cell::SetGene(const Gene& _gene)
 
 void Cell::Clone()
 {
-    Cell* child = new Cell(world, divEnergy, damage, mutationProbability, color, gen1);
+    wxPoint newPosition = position + direction;
 
-    child->SetPosition(position);
+    if (world->TakeEmptyPoint(newPosition))
+    {
+        energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 
-    Execute(Gene::ACTION_MOVE);
+        Cell* child = new Cell(world, divEnergy, damage, mutationProbability, color, gen1);
+        child->SetPosition(position);
 
-    energy /= 2;
-    child->SetEnergy(energy);
+        energy /= 2;
+        child->SetEnergy(energy);
 
-    world->AddEntity(static_cast<Entity*>(child));
+        world->AddEntity(static_cast<Entity*>(child));
 
-    childrenCounter++;
+        childrenCounter++;
+
+        SetPosition(newPosition);
+    }
 }
 
 int Cell::NormalizeCoord(int x)
@@ -869,7 +920,11 @@ void Cell::Execute(int cmd)
 
         p += direction;
 
-        SetPosition(p);
+        if (world->TakeEmptyPoint(p))
+        {
+            world->ReturnPoint(position);
+            SetPosition(p);
+        }
 
         energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 

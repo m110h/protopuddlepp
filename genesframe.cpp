@@ -78,13 +78,13 @@ wxString GenesFrame::ActionToString(int action)
     switch (action)
     {
     case ProtoPuddle::Gene::ACTION_TURN_L:
-        str = "turnl";
+        str = "turn left";
         break;
     case ProtoPuddle::Gene::ACTION_TURN_R:
-        str = "turnr";
+        str = "turn right";
         break;
     case ProtoPuddle::Gene::ACTION_MOVE:
-        str = "move";
+        str = "move forward";
         break;
     case ProtoPuddle::Gene::ACTION_NONE:
         str = "none";
