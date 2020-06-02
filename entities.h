@@ -64,9 +64,9 @@ public:
     bool OpenFromFile(const wxString& filename);
     bool SaveToFile(const wxString& filename);
 
-    bool TakeEmptyPoint(const wxPoint& point);
-    wxPoint TakeRandomEmptyPoint();
-    void ReturnPoint(const wxPoint& point);
+    bool LeaseEmptyPoint(const wxPoint& point);
+    wxPoint LeaseRandomEmptyPoint();
+    void ReleasePoint(const wxPoint& point);
 
 private:
     void DrawBoard(wxDC* dc);

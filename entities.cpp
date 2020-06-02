@@ -364,7 +364,7 @@ void World::GenerateEmptyPoints()
     }
 }
 
-bool World::TakeEmptyPoint(const wxPoint& point)
+bool World::LeaseEmptyPoint(const wxPoint& point)
 {
     auto it (std::find(emptyPoints.begin(), emptyPoints.end(), point));
 
@@ -379,7 +379,7 @@ bool World::TakeEmptyPoint(const wxPoint& point)
     return false;
 }
 
-wxPoint World::TakeRandomEmptyPoint()
+wxPoint World::LeaseRandomEmptyPoint()
 {
     wxPoint point(-1,-1);
 
@@ -395,7 +395,7 @@ wxPoint World::TakeRandomEmptyPoint()
     return point;
 }
 
-void World::ReturnPoint(const wxPoint& point)
+void World::ReleasePoint(const wxPoint& point)
 {
     emptyPoints.push_back(point);
 }
@@ -405,7 +405,7 @@ void World::GeneratePlants(int quantity)
 {
     while ( quantity>0 )
     {
-        wxPoint point = TakeRandomEmptyPoint();
+        wxPoint point = LeaseRandomEmptyPoint();
 
         if (point.x>=0 && point.y>=0)
         {
@@ -425,7 +425,7 @@ void World::GenerateCells(int quantity)
 {
     while ( quantity>0 )
     {
-        wxPoint point = TakeRandomEmptyPoint();
+        wxPoint point = LeaseRandomEmptyPoint();
 
         if (point.x>=0 && point.y>=0)
         {
@@ -453,7 +453,7 @@ void World::DeathHandle()
         {
             if ( e->GetType() == Entity::TYPE_PLANT || e->GetType() == Entity::TYPE_MEAT )
             {
-                ReturnPoint(e->GetPosition());
+                ReleasePoint(e->GetPosition());
                 delete e;
                 entities.erase(iter++);  // alternatively, iter = entities.erase(iter);
             }
@@ -773,7 +773,6 @@ void Cell::Step()
 
         if (e->IsDead())
         {
-            Execute(gen1.wall);
             return;
         }
 
@@ -860,7 +859,7 @@ void Cell::Clone()
 {
     wxPoint newPosition = position + direction;
 
-    if (world->TakeEmptyPoint(newPosition))
+    if (world->LeaseEmptyPoint(newPosition))
     {
         energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 
@@ -916,17 +915,14 @@ void Cell::Execute(int cmd)
 
     if (cmd == Gene::ACTION_MOVE)
     {
-        wxPoint p = position;
+        wxPoint p = position + direction;
 
-        p += direction;
-
-        if (world->TakeEmptyPoint(p))
+        if (world->LeaseEmptyPoint(p))
         {
-            world->ReturnPoint(position);
+            world->ReleasePoint(position);
             SetPosition(p);
+            energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
         }
-
-        energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 
         return;
     }
@@ -938,10 +934,7 @@ void Cell::Execute(int cmd)
 
     if (cmd == Gene::ACTION_ATTACK)
     {
-        wxPoint p = position;
-
-        p += direction;
-
+        wxPoint p = position + direction;
         Entity* e = world->GetEntity(p);
 
         if (e && e->GetType() == TYPE_CELL)
@@ -964,10 +957,7 @@ void Cell::Execute(int cmd)
 
     if (cmd == Gene::ACTION_EAT)
     {
-        wxPoint p = position;
-
-        p += direction;
-
+        wxPoint p = position + direction;
         Entity* e = world->GetEntity(p);
 
         if (e)
