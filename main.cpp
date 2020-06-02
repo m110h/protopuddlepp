@@ -229,7 +229,7 @@ void MyFrame::OnAbout(wxCommandEvent& event)
     info.SetIcon(wxIcon("resources/cell_icon_64x64.png", wxBITMAP_TYPE_PNG));
 
     info.SetName(wxT("ProtoPuddle++"));
-    info.SetVersion(wxT("0.5.1"));
+    info.SetVersion(wxT("0.5.2"));
     info.SetDescription(wxT(" A remake of the protopuddle cell's world simulator "));
     info.SetWebSite(wxT("https://github.com/m110h/protopuddlepp"));
 
