@@ -31,7 +31,6 @@ World::~World()
     }
 
     entities.clear();
-
     emptyPoints.clear();
 }
 
@@ -40,6 +39,10 @@ void World::New()
     steps = 0;
     nextId = 0;
     selectedId = -1;
+
+    plantsCounter = 0;
+    meatCounter = 0;
+    cellsCounter = 0;
 
     for (Entity* e: entities)
     {
@@ -107,7 +110,7 @@ Entity* World::GetEntity(const wxPoint& worldPosition)
         {
             wxPoint p = e->GetPosition();
 
-            if ( (p.x == worldPosition.x) && (p.y == worldPosition.y) )
+            if (p == worldPosition)
                 return e;
         }
     }
@@ -134,7 +137,7 @@ int World::GetEntityIdByPosition(const wxPoint& worldPosition)
         {
             wxPoint p = e->GetPosition();
 
-            if ( (p.x == worldPosition.x) && (p.y == worldPosition.y) )
+            if (p == worldPosition)
                 return e->GetId();
         }
     }
@@ -221,6 +224,18 @@ wxRect World::GetBoardBoundingBox()
 void World::AddEntity(Entity* e)
 {
     if (e) entities.push_front(e);
+
+    switch (e->GetType())
+    {
+    case Entity::TYPE_PLANT:
+        plantsCounter++;
+        break;
+    case Entity::TYPE_CELL:
+        cellsCounter++;
+        break;
+    default:
+        break;
+    }
 }
 
 bool World::OpenFromFile(const wxString& filename)
@@ -403,41 +418,33 @@ void World::ReleasePoint(const wxPoint& point)
 
 void World::GeneratePlants(int quantity)
 {
-    while ( quantity>0 )
+    for (int i=0; i<quantity; i++)
     {
         wxPoint point = LeaseRandomEmptyPoint();
 
-        if (point.x>=0 && point.y>=0)
-        {
-            Plant* tmp = new Plant(this);
-            tmp->SetPosition(point);
-            entities.push_back((Entity*)tmp);
-        }
-        else {
+        if (point == wxPoint(-1,-1))
             break;
-        }
 
-        quantity--;
+        Plant* tmp = new Plant(this);
+        tmp->SetPosition(point);
+
+        AddEntity(static_cast<Entity*>(tmp));
     }
 }
 
 void World::GenerateCells(int quantity)
 {
-    while ( quantity>0 )
+    for (int i=0; i<quantity; i++)
     {
         wxPoint point = LeaseRandomEmptyPoint();
 
-        if (point.x>=0 && point.y>=0)
-        {
-            Cell* tmp = new Cell(this);
-            tmp->SetPosition(point);
-            entities.push_back((Entity*)tmp);
-        }
-        else {
+        if (point == wxPoint(-1,-1))
             break;
-        }
 
-        quantity--;
+        Cell* tmp = new Cell(this, wxString::Format(wxT("gene%d"), i+1));
+        tmp->SetPosition(point);
+
+        AddEntity(static_cast<Entity*>(tmp));
     }
 }
 
@@ -453,6 +460,18 @@ void World::DeathHandle()
         {
             if ( e->GetType() == Entity::TYPE_PLANT || e->GetType() == Entity::TYPE_MEAT )
             {
+                switch (e->GetType())
+                {
+                case Entity::TYPE_PLANT:
+                    plantsCounter--;
+                    break;
+                case Entity::TYPE_MEAT:
+                    meatCounter--;
+                    break;
+                default:
+                    break;
+                }
+
                 ReleasePoint(e->GetPosition());
                 delete e;
                 entities.erase(iter++);  // alternatively, iter = entities.erase(iter);
@@ -468,6 +487,9 @@ void World::DeathHandle()
                 e->SetPosition(p);
 
                 *iter = e;
+
+                cellsCounter--;
+                meatCounter++;
             }
         }
         else
@@ -479,38 +501,7 @@ void World::DeathHandle()
 
 std::tuple<int, int, int> World::GetEntitiesQuantity()
 {
-    int plants {0};
-    int meat {0};
-    int cells {0};
-
-    auto iter = entities.begin();
-
-    while (iter != entities.end())
-    {
-        Entity* e = *iter;
-
-        if (e && !e->IsDead())
-        {
-            switch (e->GetType())
-            {
-            case Entity::TYPE_PLANT:
-                plants++;
-                break;
-            case Entity::TYPE_MEAT:
-                meat++;
-                break;
-            case Entity::TYPE_CELL:
-                cells++;
-                break;
-            default:
-                break;
-            }
-        }
-
-        ++iter;
-    }
-
-    return { plants, meat, cells };
+    return { plantsCounter, meatCounter, cellsCounter };
 }
 
 // ENTITY CLASS
@@ -672,7 +663,7 @@ const std::array<int, 4> plantActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R
 const std::array<int, 2> wallActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
 const std::array<int, 2> weakActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
 
-Cell::Cell(World* _world): Entity(_world)
+Cell::Cell(World* _world, const wxString& geneName): Entity(_world)
 {
     type = Entity::TYPE_CELL;
 
@@ -701,7 +692,7 @@ Cell::Cell(World* _world): Entity(_world)
     std::array<wxPoint, 8> directions { wxPoint(1,0), wxPoint(1,1), wxPoint(0,1), wxPoint(-1,1), wxPoint(-1,0), wxPoint(-1,-1), wxPoint(0,-1), wxPoint(1,-1) };
     direction = directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
 
-    gen1 = GenerateGene("gene1");
+    gen1 = GenerateGene(geneName);
     color = GenerateColor();
 }
 
@@ -733,10 +724,7 @@ Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability,
     }
 }
 
-Cell::~Cell()
-{
-    //
-}
+Cell::~Cell() {}
 
 void Cell::Step()
 {
@@ -744,7 +732,6 @@ void Cell::Step()
 
     if (attacked)
     {
-        // ?
         attacked = false;
     }
     else if (CanDivide())

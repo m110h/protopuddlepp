@@ -87,6 +87,10 @@ private:
     int selectedId {-1};
     int steps {0};
 
+    int plantsCounter {0};
+    int meatCounter {0};
+    int cellsCounter {0};
+
     int paddingX {0};
     int paddingY {0};
 
@@ -106,9 +110,6 @@ public:
     virtual void Step();
     virtual void Draw(wxDC* dc) = 0;
     virtual void DrawSelected(wxDC* dc) = 0;
-
-    //virtual nlohmann::json GetConfig() = 0;
-    //virtual bool SetConfig(const nlohmann::json& config) = 0;
 
     bool IsDead();
 
@@ -182,7 +183,7 @@ public:
 class Cell: public Entity
 {
 public:
-    Cell(World* _world);
+    Cell(World* _world, const wxString& geneName);
     Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability, const wxColor& _color, const Gene& _gene);
 
     ~Cell();

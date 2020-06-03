@@ -6,7 +6,7 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
     sortsOfCellCtrl = new wxSpinCtrl(this, wxID_ANY);
     cellEnergyCtrl = new wxSpinCtrl(this, wxID_ANY);
     maxDamageCtrl = new wxSpinCtrl(this, wxID_ANY);
-    behaviorGenesCtrl = new wxSpinCtrl(this, wxID_ANY);
+    //behaviorGenesCtrl = new wxSpinCtrl(this, wxID_ANY);
     minEnergyForDivisionCtrl = new wxSpinCtrl(this, wxID_ANY);
     maxEnergyForDivisionCtrl = new wxSpinCtrl(this, wxID_ANY);
     plantsCtrl = new wxSpinCtrl(this, wxID_ANY);
@@ -21,7 +21,7 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
     sortsOfCellCtrl->SetRange(properties.GetMin(wxString("sortsOfCell")),properties.GetMax(wxString("sortsOfCell")));
     cellEnergyCtrl->SetRange(properties.GetMin(wxString("cellEnergy")),properties.GetMax(wxString("cellEnergy")));
     maxDamageCtrl->SetRange(properties.GetMin(wxString("maxDamage")),properties.GetMax(wxString("maxDamage")));
-    behaviorGenesCtrl->SetRange(properties.GetMin(wxString("behaviorGenes")),properties.GetMax(wxString("behaviorGenes")));
+    //behaviorGenesCtrl->SetRange(properties.GetMin(wxString("behaviorGenes")),properties.GetMax(wxString("behaviorGenes")));
     minEnergyForDivisionCtrl->SetRange(properties.GetMin(wxString("minEnergyForDivision")),properties.GetMax(wxString("minEnergyForDivision")));
     maxEnergyForDivisionCtrl->SetRange(properties.GetMin(wxString("maxEnergyForDivision")),properties.GetMax(wxString("maxEnergyForDivision")));
     plantsCtrl->SetRange(properties.GetMin(wxString("plants")),properties.GetMax(wxString("plants")));
@@ -36,7 +36,7 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
     sortsOfCellCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedSortsOfCell, this);
     cellEnergyCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedCellEnergy, this);
     maxDamageCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMaxDamage, this);
-    behaviorGenesCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedBehaviorGenes, this);
+    //behaviorGenesCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedBehaviorGenes, this);
     minEnergyForDivisionCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMinEnergyForDivision, this);
     maxEnergyForDivisionCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedMaxEnergyForDivision, this);
     plantsCtrl->Bind(wxEVT_SPINCTRL, &PrefsPageGeneralPanel::ChangedPlants, this);
@@ -56,8 +56,8 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
     propertiesSizer->Add(cellEnergyCtrl, wxSizerFlags().Border().Expand());
     propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Max damage")), wxSizerFlags().Border());
     propertiesSizer->Add(maxDamageCtrl, wxSizerFlags().Border().Expand());
-    propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Quantity of behavior genes")), wxSizerFlags().Border());
-    propertiesSizer->Add(behaviorGenesCtrl, wxSizerFlags().Border().Expand());
+    //propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Quantity of behavior genes")), wxSizerFlags().Border());
+    //propertiesSizer->Add(behaviorGenesCtrl, wxSizerFlags().Border().Expand());
     propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Min energy for division")), wxSizerFlags().Border());
     propertiesSizer->Add(minEnergyForDivisionCtrl, wxSizerFlags().Border().Expand());
     propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Max energy for division")), wxSizerFlags().Border());
@@ -91,7 +91,7 @@ bool PrefsPageGeneralPanel::TransferDataToWindow()
     sortsOfCellCtrl->SetValue(properties.GetValue(wxString("sortsOfCell")));
     cellEnergyCtrl->SetValue(properties.GetValue(wxString("cellEnergy")));
     maxDamageCtrl->SetValue(properties.GetValue(wxString("maxDamage")));
-    behaviorGenesCtrl->SetValue(properties.GetValue(wxString("behaviorGenes")));
+    //behaviorGenesCtrl->SetValue(properties.GetValue(wxString("behaviorGenes")));
     minEnergyForDivisionCtrl->SetValue(properties.GetValue(wxString("minEnergyForDivision")));
     maxEnergyForDivisionCtrl->SetValue(properties.GetValue(wxString("maxEnergyForDivision")));
     plantsCtrl->SetValue(properties.GetValue(wxString("plants")));
@@ -153,10 +153,12 @@ void PrefsPageGeneralPanel::ChangedMaxDamage(wxSpinEvent& e) {
     properties.SetValue(wxString("maxDamage"), e.GetValue());
     UpdateSettingsIfNecessary();
 }
+/*
 void PrefsPageGeneralPanel::ChangedBehaviorGenes(wxSpinEvent& e) {
     properties.SetValue(wxString("behaviorGenes"), e.GetValue());
     UpdateSettingsIfNecessary();
 }
+*/
 void PrefsPageGeneralPanel::ChangedMinEnergyForDivision(wxSpinEvent& e) {
     properties.SetValue(wxString("minEnergyForDivision"), e.GetValue());
     UpdateSettingsIfNecessary();
