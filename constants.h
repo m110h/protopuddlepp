@@ -8,6 +8,9 @@ namespace ProtoPuddle
 
 const wxString unknownValueStr = wxT("---");
 
+const int maxWorldWidth = 100;
+const int maxWorldHeight = 100;
+
 }
 
 #endif

@@ -72,6 +72,7 @@ private:
     wxStaticText* childrensText {nullptr};
     wxStaticText* eatenPlantsText {nullptr};
     wxStaticText* eatenMeatText {nullptr};
+    wxStaticText* lastBehaviorText {nullptr};
 
     wxButton* showGenesBtn {nullptr};
 
@@ -330,6 +331,7 @@ void MyFrame::UpdateInformation()
         childrensText->SetLabel(e->Get("childrens"));
         eatenPlantsText->SetLabel(e->Get("eatenPlants"));
         eatenMeatText->SetLabel(e->Get("eatenMeat"));
+        lastBehaviorText->SetLabel(e->Get("lastBehavior"));
 
         // enable showGenesBtn if disabled
         showGenesBtn->Enable();
@@ -346,6 +348,7 @@ void MyFrame::UpdateInformation()
         childrensText->SetLabel(ProtoPuddle::unknownValueStr);
         eatenPlantsText->SetLabel(ProtoPuddle::unknownValueStr);
         eatenMeatText->SetLabel(ProtoPuddle::unknownValueStr);
+        lastBehaviorText->SetLabel(ProtoPuddle::unknownValueStr);
 
         // disable showGenesBtn if enabled
         showGenesBtn->Disable();
@@ -532,7 +535,7 @@ void MyFrame::MakeLayout()
     wxStaticBox* selectedGroupBox = new wxStaticBox(sw, wxID_ANY, "Cell Information");
     wxStaticBoxSizer * vSelectedSizer = new wxStaticBoxSizer (selectedGroupBox, wxVERTICAL);
 
-    wxGridSizer* selectedSizer = new wxGridSizer(11, 2, 3, 0);
+    wxGridSizer* selectedSizer = new wxGridSizer(12, 2, 3, 0);
         selectedSizer->Add(new wxStaticText(selectedGroupBox, wxID_ANY, wxT("Id number")));
             idText = new wxStaticText(selectedGroupBox, wxID_ANY, ProtoPuddle::unknownValueStr);
             selectedSizer->Add(idText);
@@ -566,6 +569,9 @@ void MyFrame::MakeLayout()
         selectedSizer->Add(new wxStaticText(selectedGroupBox, wxID_ANY, wxT("Eaten meat")));
             eatenMeatText = new wxStaticText(selectedGroupBox, wxID_ANY, ProtoPuddle::unknownValueStr);
             selectedSizer->Add(eatenMeatText);
+        selectedSizer->Add(new wxStaticText(selectedGroupBox, wxID_ANY, wxT("Last behavior")));
+            lastBehaviorText = new wxStaticText(selectedGroupBox, wxID_ANY, ProtoPuddle::unknownValueStr);
+            selectedSizer->Add(lastBehaviorText);
 
     vSelectedSizer->Add(selectedSizer, 0, wxEXPAND);
     vSelectedSizer->Add(new wxStaticLine(selectedGroupBox, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL), 0, wxGROW|wxTOP|wxBOTTOM, 10);

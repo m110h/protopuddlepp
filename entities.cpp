@@ -13,9 +13,12 @@
 #include <iomanip>
 #include <fstream>
 #include <exception>
+#include <cassert>
 
 namespace ProtoPuddle
 {
+
+Entity* entitiesTable[maxWorldWidth][maxWorldHeight];
 
 World::World(GlobalProperties* _properties)
 {
@@ -24,13 +27,9 @@ World::World(GlobalProperties* _properties)
 
 World::~World()
 {
-    for (Entity* e: entities)
-    {
-        if (e)
-            delete e;
-    }
+    ClearEntitiesList();
+    ClearEntitiesTable();
 
-    entities.clear();
     emptyPoints.clear();
 }
 
@@ -44,21 +43,16 @@ void World::New()
     meatCounter = 0;
     cellsCounter = 0;
 
-    for (Entity* e: entities)
-    {
-        if (e)
-            delete e;
-    }
-
-    entities.clear();
+    ClearEntitiesList();
+    ClearEntitiesTable();
 
     worldSize.SetWidth(properties->GetValue(wxString("worldWidth")));
     worldSize.SetHeight(properties->GetValue(wxString("worldHeight")));
 
     GenerateEmptyPoints();
 
-    GeneratePlants( properties->GetValue(wxString("plants")) );
-    GenerateCells( properties->GetValue(wxString("sortsOfCell")) );
+    GenerateEntities(Entity::TYPE_PLANT, properties->GetValue(wxString("plants")));
+    GenerateEntities(Entity::TYPE_CELL, properties->GetValue(wxString("sortsOfCell")));
 }
 
 void World::Step()
@@ -68,9 +62,9 @@ void World::Step()
         steps = 0;
     }
 
-    GeneratePlants(properties->GetValue(wxString("plantsPerStep")));
+    GenerateEntities(Entity::TYPE_PLANT, properties->GetValue(wxString("plantsPerStep")));
 
-    for (Entity* e: entities)
+    for (Entity* e: entitiesList)
     {
         if (e)
             e->Step();
@@ -104,45 +98,37 @@ bool World::IsInside(const wxPoint& worldPosition)
 
 Entity* World::GetEntity(const wxPoint& worldPosition)
 {
-    for (Entity* e: entities)
+    /*
+    for (Entity* e: entitiesList)
     {
-        if (e)
-        {
-            wxPoint p = e->GetPosition();
-
-            if (p == worldPosition)
-                return e;
-        }
+        if (e && (worldPosition == e->GetPosition()) )
+            return e;
     }
-
     return nullptr;
+    */
+
+    return entitiesTable[worldPosition.x][worldPosition.y];
+}
+
+int World::GetEntityIdByPosition(const wxPoint& worldPosition)
+{
+    Entity* e = GetEntity(worldPosition);
+
+    if (nullptr == e)
+        return -1;
+
+    return e->GetId();
 }
 
 Entity* World::GetEntityById(int id)
 {
-    for (Entity* e: entities)
+    for (Entity* e: entitiesList)
     {
         if (e && (id == e->GetId()) )
             return e;
     }
 
     return nullptr;
-}
-
-int World::GetEntityIdByPosition(const wxPoint& worldPosition)
-{
-    for (Entity* e: entities)
-    {
-        if (e)
-        {
-            wxPoint p = e->GetPosition();
-
-            if (p == worldPosition)
-                return e->GetId();
-        }
-    }
-
-    return -1;
 }
 
 void World::SelectEntityByPosition(const wxPoint& worldPosition)
@@ -223,7 +209,12 @@ wxRect World::GetBoardBoundingBox()
 
 void World::AddEntity(Entity* e)
 {
-    if (e) entities.push_front(e);
+    assert(e && "AddEntity: entity is nullptr");
+
+    wxPoint p = e->GetPosition();
+    entitiesTable[p.x][p.y] = e;
+
+    entitiesList.push_front(e);
 
     switch (e->GetType())
     {
@@ -349,7 +340,7 @@ void World::DrawBoard(wxDC* dc)
 
 void World::DrawEntities(wxDC* dc)
 {
-    for (Entity* e: entities)
+    for (Entity* e: entitiesList)
     {
         if (e)
             e->Draw(dc);
@@ -415,8 +406,7 @@ void World::ReleasePoint(const wxPoint& point)
     emptyPoints.push_back(point);
 }
 
-
-void World::GeneratePlants(int quantity)
+void World::GenerateEntities(int type, int quantity)
 {
     for (int i=0; i<quantity; i++)
     {
@@ -425,34 +415,31 @@ void World::GeneratePlants(int quantity)
         if (point == wxPoint(-1,-1))
             break;
 
-        Plant* tmp = new Plant(this);
-        tmp->SetPosition(point);
-
-        AddEntity(static_cast<Entity*>(tmp));
-    }
-}
-
-void World::GenerateCells(int quantity)
-{
-    for (int i=0; i<quantity; i++)
-    {
-        wxPoint point = LeaseRandomEmptyPoint();
-
-        if (point == wxPoint(-1,-1))
+        Entity* tmp = nullptr;
+        switch (type)
+        {
+        case Entity::TYPE_PLANT:
+            tmp = new Plant(this);
             break;
+        case Entity::TYPE_CELL:
+            tmp = new Cell(this, wxString::Format(wxT("gene%d"), i+1));
+            break;
+        default:
+            break;
+        }
 
-        Cell* tmp = new Cell(this, wxString::Format(wxT("gene%d"), i+1));
+        assert(tmp && "GenerateEntities: entity is nullptr");
+
         tmp->SetPosition(point);
-
-        AddEntity(static_cast<Entity*>(tmp));
+        AddEntity(tmp);
     }
 }
 
 void World::DeathHandle()
 {
-    auto iter = entities.begin();
+    auto iter = entitiesList.begin();
 
-    while (iter != entities.end())
+    while (iter != entitiesList.end())
     {
         Entity* e = *iter;
 
@@ -472,19 +459,22 @@ void World::DeathHandle()
                     break;
                 }
 
-                ReleasePoint(e->GetPosition());
+                wxPoint p = e->GetPosition();
+                entitiesTable[p.x][p.y] = nullptr;
+
+                ReleasePoint(p);
                 delete e;
-                entities.erase(iter++);  // alternatively, iter = entities.erase(iter);
+                entitiesList.erase(iter++);  // alternatively, iter = entities.erase(iter);
             }
             else if ( e->GetType() == Entity::TYPE_CELL )
             {
-                // don't forget about selected cells!
-
                 wxPoint p = e->GetPosition();
                 delete e;
 
                 e = new Meat(this);
                 e->SetPosition(p);
+
+                entitiesTable[p.x][p.y] = e;
 
                 *iter = e;
 
@@ -497,6 +487,26 @@ void World::DeathHandle()
             ++iter;
         }
     }
+}
+
+void World::ClearEntitiesTable()
+{
+    for (int i=0; i<maxWorldWidth; i++)
+        for (int j=0; j<maxWorldHeight; j++)
+        {
+            entitiesTable[i][j] = nullptr;
+        }
+}
+
+void World::ClearEntitiesList()
+{
+    for (Entity* e: entitiesList)
+    {
+        if (e)
+            delete e;
+    }
+
+    entitiesList.clear();
 }
 
 std::tuple<int, int, int> World::GetEntitiesQuantity()
@@ -663,12 +673,24 @@ const std::array<int, 4> plantActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R
 const std::array<int, 2> wallActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
 const std::array<int, 2> weakActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
 
+//
+const std::array<wxPoint,8> directions {
+    wxPoint(1,0),
+    wxPoint(1,1),
+    wxPoint(0,1),
+    wxPoint(-1,1),
+    wxPoint(-1,0),
+    wxPoint(-1,-1),
+    wxPoint(0,-1),
+    wxPoint(1,-1)
+};
+
 Cell::Cell(World* _world, const wxString& geneName): Entity(_world)
 {
     type = Entity::TYPE_CELL;
 
     lifeTime = effolkronium::random_static::get<int>(
-        1,
+        0,
         world->GetProperties()->GetValue(wxString("maxAge"))
     );
 
@@ -680,7 +702,7 @@ Cell::Cell(World* _world, const wxString& geneName): Entity(_world)
     );
 
     damage = effolkronium::random_static::get<int>(
-        1,
+        0,
         world->GetProperties()->GetValue(wxString("maxDamage"))
     );
 
@@ -689,8 +711,7 @@ Cell::Cell(World* _world, const wxString& geneName): Entity(_world)
         world->GetProperties()->GetValue(wxString("maxMutationProbability"))
     );
 
-    std::array<wxPoint, 8> directions { wxPoint(1,0), wxPoint(1,1), wxPoint(0,1), wxPoint(-1,1), wxPoint(-1,0), wxPoint(-1,-1), wxPoint(0,-1), wxPoint(1,-1) };
-    direction = directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
+    direction = GenerateDirection();
 
     gen1 = GenerateGene(geneName);
     color = GenerateColor();
@@ -698,7 +719,7 @@ Cell::Cell(World* _world, const wxString& geneName): Entity(_world)
 
 Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability, const wxColor& _color, const Gene& _gene): Entity(_world)
 {
-    type = TYPE_CELL;
+    type = Entity::TYPE_CELL;
 
     divEnergy = _divEnergy;
     damage = _damage;
@@ -707,8 +728,7 @@ Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability,
 
     lifeTime = effolkronium::random_static::get<int>(1, world->GetProperties()->GetValue(wxString("maxAge")));
 
-    std::array<wxPoint, 8> directions { wxPoint(1,0), wxPoint(1,1), wxPoint(0,1), wxPoint(-1,1), wxPoint(-1,0), wxPoint(-1,-1), wxPoint(0,-1), wxPoint(1,-1) };
-    direction = directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
+    direction = GenerateDirection();
 
     auto mutation = effolkronium::random_static::get<bool>(mutationProbability/100.f);
 
@@ -726,26 +746,32 @@ Cell::Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability,
 
 Cell::~Cell() {}
 
+wxPoint Cell::GenerateDirection()
+{
+    return directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
+}
+
 void Cell::Step()
 {
     Entity::Step();
 
     if (attacked)
     {
+        SetLastBehavior(wxT("attacked"));
         attacked = false;
     }
     else if (CanDivide())
     {
+        SetLastBehavior(wxT("division"));
         Clone();
     }
     else // genetic behavior
     {
-        wxPoint p = position;
-
-        p += direction;
+        wxPoint p = position + direction;
 
         if (!world->IsInside(p))
         {
+            SetLastBehavior(wxT("wall"));
             Execute(gen1.wall);
             return;
         }
@@ -754,29 +780,35 @@ void Cell::Step()
 
         if (e == nullptr)
         {
+            SetLastBehavior(wxT("empty"));
             Execute(gen1.empty);
             return;
         }
 
         if (e->IsDead())
         {
+            SetLastBehavior(wxT("defunct"));
             return;
         }
 
         switch (e->GetType())
         {
         case TYPE_PLANT:
+            SetLastBehavior(wxT("plant"));
             Execute(gen1.plant);
             break;
         case TYPE_MEAT:
+            SetLastBehavior(wxT("meat"));
             Execute(gen1.meat);
             break;
         case TYPE_CELL:
             if (e->GetColor() == color)
             {
+                SetLastBehavior(wxT("same"));
                 Execute(gen1.same);
             }
             else {
+                SetLastBehavior(wxT("other"));
                 Execute(gen1.other);
             }
             break;
@@ -850,17 +882,18 @@ void Cell::Clone()
     {
         energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
 
-        Cell* child = new Cell(world, divEnergy, damage, mutationProbability, color, gen1);
+        Entity* child = new Cell(world, divEnergy, damage, mutationProbability, color, gen1);
         child->SetPosition(position);
 
         energy /= 2;
         child->SetEnergy(energy);
 
-        world->AddEntity(static_cast<Entity*>(child));
-
-        childrenCounter++;
+        world->AddEntity(child);
 
         SetPosition(newPosition);
+        entitiesTable[newPosition.x][newPosition.y] = this;
+
+        childrenCounter++;
     }
 }
 
@@ -870,6 +903,11 @@ int Cell::NormalizeCoord(int x)
     if (x < 0) return -1;
 
     return 0;
+}
+
+void Cell::SetLastBehavior(const wxString& behavior)
+{
+    lastBehavior = behavior;
 }
 
 void Cell::Execute(int cmd)
@@ -906,8 +944,12 @@ void Cell::Execute(int cmd)
 
         if (world->LeaseEmptyPoint(p))
         {
+            entitiesTable[position.x][position.y] = nullptr;
             world->ReleasePoint(position);
+
             SetPosition(p);
+            entitiesTable[p.x][p.y] = this;
+
             energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
         }
 
@@ -929,7 +971,10 @@ void Cell::Execute(int cmd)
             Cell* c = dynamic_cast<Cell*>(e);
 
             if (!Attack(c))
+            {
+                SetLastBehavior(wxT("weak"));
                 Execute(gen1.weak);
+            }
             else
             {
                 energy -= world->GetProperties()->GetValue(wxString("attackEnergy"));
@@ -1073,6 +1118,8 @@ wxString Cell::Get(const wxString& name)
         return wxString::Format(wxT("%d"), eatenPlantsCounter);
     if (name == wxString("eatenMeat"))
         return wxString::Format(wxT("%d"), eatenMeatCounter);
+    if (name == wxString("lastBehavior"))
+        return lastBehavior;
 
     return unknownValueStr;
 }

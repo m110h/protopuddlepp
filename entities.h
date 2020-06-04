@@ -74,14 +74,16 @@ private:
 
     void GenerateEmptyPoints();
 
-    void GeneratePlants(int quantity);
-    void GenerateCells(int quantity);
+    void GenerateEntities(int type, int quantity);
 
     void DeathHandle();
 
+    void ClearEntitiesTable();
+    void ClearEntitiesList();
+
 private:
     std::vector<wxPoint> emptyPoints;
-    std::list<Entity*> entities;
+    std::list<Entity*> entitiesList;
 
     int nextId {0};
     int selectedId {-1};
@@ -208,11 +210,14 @@ private:
     Gene MutateGene(const Gene& _gene);
 
     wxColor GenerateColor();
+    wxPoint GenerateDirection();
 
     bool CanDivide();
     void DrawDirection(wxDC* dc);
 
     int NormalizeCoord(int x);
+
+    void SetLastBehavior(const wxString& behavior);
 
 private:
     wxPoint direction {wxPoint(1,0)};
@@ -228,6 +233,8 @@ private:
     int eatenMeatCounter {0};
 
     bool attacked {false};
+
+    wxString lastBehavior {""};
 };
 
 }
