@@ -1,0 +1,216 @@
+## Description:
+
+	A simulator of a cell's world with a simple genetic algorithm. A world is a
+	rectangular matrix that contains bots (cells). The bot can move, attack another bots,
+	reproduce by division and eat plants and a meat. A bot's behavior is determinated
+	by a gene. The gene has a fixed lenght and describes the behavior in all possible
+	situations. During the division the gene can mutate. One part of parameters the bot
+	inherits from its parent, another part is depended on the parameters of the world and
+	a random numbers algorithm.
+
+	So, we have all necessary conditions for an evolution process:
+		* heredity
+		* variability
+		* fight for survival
+
+## List of entities:
+
+	* World
+	* Cell
+	* Plant
+	* Meat
+
+## Parameters of the world:
+
+	* columns quantity
+		* its name in a configuration file is "worldWidth"
+		* its name in a properties dialog is "Width of cell's world"
+
+	* rows quantity
+		* its name in a configuration file is "worldHeight"
+		* its name in a properties dialog is "Height of cell's world"
+
+	* a quantity of a simulation steps per second
+		* its name in a configuration file is "stepsPerSecond"
+		* its name in a properties dialog is "Steps per second"
+
+		! in real, it depends from your hardware
+
+	* a quantity of plants generated per a simulation step
+		* its name in a configuration file is "plantsPerStep"
+		* its name in a properties dialog is "Plants per step"
+
+	* an initial quantity of plants
+		* its name in a configuration file is "plants"
+		* its name in a properties dialog is "Initial quantity of plants"
+
+	* a lifetime of a plant in steps of simulation
+		* its name in a configuration file is "plantLifeTime"
+		* its name in a properties dialog is ...
+
+	* an energy that a cell gets after eating a plant
+		* its name in a configuration file is "plantEnergy"
+		* its name in a properties dialog is "Plant's energy"
+
+	* an initail quantity of cell's sorts with an unique gene (a zero-generation)
+		* its name in a configuration file is "sortsOfCell"
+		* its name in a properties dialog is "Initial quantity of sorts"
+
+	* an initial cell's energy (for zero-generation)
+		* its name in a configuration file is "cellEnergy"
+		* its name in a properties dialog is "Initial cell's energy"
+
+	* a maximal age of a cell
+		* its name in a configuration file is "maxAge"
+		* its name in a properties dialog is "Max cell's age"
+
+	* a maximal damage that a cell can inflict to another cell
+		* its name in a configuration file is "maxDamage"
+		* its name in a properties dialog is "Max damage"
+
+	* a minimal value for an energy for a division
+		* its name in a configuration file is "minEnergyForDivision"
+		* its name in a properties dialog is "Min energy for division"
+
+	* a maximal value for an energy for a division
+		* its name in a configuration file is "maxEnergyForDivision"
+		* its name in a properties dialog is "Max energy for division"
+
+	* a maximal probability of a mutation during a division
+		* its name in a configuration file is "maxMutationProbability"
+		* its name in a properties dialog is ...
+
+	* an energy that a cell loses after one movement (turn, move forward)
+		* its name in a configuration file is "movementEnergy"
+		* its name in a properties dialog is ...
+
+	* a condition for make an attack
+		* its name in a configuration file is "attackCondition"
+		* its name in a properties dialog is ...
+
+		! if a cell wants to make an attack another cell then a differense between attacker's energy
+		  and victim's energy must be no less this parameter 
+
+	* an energy that a cell loses after one attack
+		* its name in a configuration file is "attackEnergy"
+		* its name in a properties dialog is ...
+
+	* an energy that a cell gets after eating a meat
+		* its name in a configuration file is "meatEnergy"
+		* its name in a properties dialog is "Meat's energy"
+
+	* meat's lifetime in steps of a simulation
+		* its name in a configuration file is "meatLifeTime"
+		* its name in a properties dialog is ...
+
+	Three dots means that parameter can't be changed over this interface.
+
+	Properties with prefixes 'min' and 'max' define a range for parameters that are dependt from a random choose.
+	If a property with the prefix 'min' isn't exist it means a range is [0, max].
+
+## Parameters of a basic entity:
+
+	* current age (Age)
+	* maximal age (MaxAge)
+	* energy (Energy)
+	* color
+		
+		- plants are always green
+		- meat is always red
+		- the entity inherits a color from its parent or modifies it during mutation
+
+	An entity will die if its age is equal its maximum age or its energy is equal zero.
+
+## Parameters of a cell:
+
+	The cell has all of parent's parameters and its own that described below:
+
+	* a quantity of an energy that necessary for a division (Energy for div)
+	* a mutation probability, it is a number between 0 and 100 (Mutation)
+	* a maximum damage that gets another cell during cell's attack (Damage)
+	* a behavoir gene
+
+	The gene describes a cell's behavior. The behavior depends from an entity in front.
+	It can be:
+
+		* an empty field (Empty)
+		* a cell that has the same sort (Same)
+		* a cell that has a different sort (Other)
+		* a plant (Plant)
+		* a meat (Meat)
+		* a wall (Wall)
+		* a dead entity (Dead)
+
+		There is another one. It's "Weak". "Weak" means that a cell must attack another cell, but
+		it has a low energy. A difference between an attacker energy and a victim energy must be greater
+		or equal "attackCondition".
+
+		For each kind of behavior exists a set of possible actions. At first, let's describe all of
+		possible actions:
+
+			* NONE - do nothing
+			* TURN_L - turn left
+			* TURN_R - turn right
+			* MOVE - move forward on next an empty field
+			* ATTACK - attack another cell
+			* EAT - eat a plant or a meat
+
+		As you can see, some actions have not a sense for some situations. For example, how can a cell
+		attack Wall or Plant or Meat? Therefore, sets of cell's behavior defined like show below:
+
+			* Empty: {TURN_L, TURN_R, MOVE, NONE}
+			* Same: {TURN_L, TURN_R, ATTACK}
+			* Other: {TURN_L, TURN_R, ATTACK}
+			* Plant: {TURN_L, TURN_R, EAT, NONE}
+			* Meat: {TURN_L, TURN_R, EAT, NONE}
+			* Wall: {TURN_L, TURN_R}
+			* Weak: {TURN_L, TURN_R}
+			* Dead: {TURN_L, TURN_R, NONE}
+
+## Cell's algorithm:
+
+	0) Is it dead? - yes: skip, no: go to step 1
+
+	1) Is it attacked - yes: skip, no: go to step 2
+	
+	2) Is it ready to divide?
+		
+		2.1) yes: make a division
+			
+			* A child cell inherits next parameters:
+				* a necessary energy for a division (Energy fir div)
+				* a damage that gets another cell during an attack (Damage)
+				* a probability of a mutation (Mutation)
+				* a color in case a mutation isn't happened
+				* a gene in case a mutation isn't happened
+
+			* During a division a mutation can happen:
+				* it changes one action inside a gene. a new action will be seleced randomly
+				* also it changes a color of the cell
+
+			* The child cell generates next parameters randomly:
+				* a maximal age
+				* a direction of movement
+				* a color in case of a mutation
+				* a gene in case of a mutation
+
+			* A parental cell go forward
+
+			* A parental cell sets a half of its energy to child cell
+
+		2.2) no: go to step 3
+
+	3) Do a genetic behavior
+		
+		It detect what is exist on a forward square and select a behavior from its gene.
+
+## World's algorithm:
+
+	One step of a simulation of the world includes next actions:
+
+	1) The world generates plants, it depends from the parameter of the world "plantsPerStep"
+	2) The world does one simulation step for each cell
+	3) The world processes entities that are dead
+		3.1) if a cell is dead then it transforms to a meat
+		3.2) if a plant or a meat is dead then they will be removed from the world
+	4) Repeat
