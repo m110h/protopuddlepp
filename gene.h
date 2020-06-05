@@ -20,6 +20,7 @@ struct Gene
         plant = src.plant;
         wall = src.wall;
         weak = src.weak;
+        dead = src.dead;
     }
 
     ~Gene() {}
@@ -37,6 +38,7 @@ struct Gene
         plant = r.plant;
         wall = r.wall;
         weak = r.weak;
+        dead = r.dead;
 
         return *this;
     }
@@ -60,6 +62,7 @@ struct Gene
     int plant {ACTION_NONE};
     int wall {ACTION_NONE};
     int weak {ACTION_NONE};
+    int dead {ACTION_NONE};
 };
 
 }

@@ -38,8 +38,6 @@ public:
 private:
     void softwareRender(wxDC* dc);
 
-    DECLARE_EVENT_TABLE()
-
 private:
     wxGraphicsRenderer* renderer {nullptr};
 

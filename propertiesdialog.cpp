@@ -64,7 +64,7 @@ PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
     propertiesSizer->Add(maxEnergyForDivisionCtrl, wxSizerFlags().Border().Expand());
     propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Initial quantity of plants")), wxSizerFlags().Border());
     propertiesSizer->Add(plantsCtrl, wxSizerFlags().Border().Expand());
-    propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Plants' energy")), wxSizerFlags().Border());
+    propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Plant's energy")), wxSizerFlags().Border());
     propertiesSizer->Add(plantEnergyCtrl, wxSizerFlags().Border().Expand());
     propertiesSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Meat's energy")), wxSizerFlags().Border());
     propertiesSizer->Add(meatEnergyCtrl, wxSizerFlags().Border().Expand());

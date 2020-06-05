@@ -665,25 +665,14 @@ void Meat::DrawSelected(wxDC* dc)
 // CELL CLASS
 
 // sets of behavior
-const std::array<int, 4> emptyActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_MOVE, Gene::ACTION_NONE };
-const std::array<int, 3> otherActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_ATTACK };
-const std::array<int, 3> sameActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_ATTACK };
-const std::array<int, 4> meatActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_NONE, Gene::ACTION_EAT };
-const std::array<int, 4> plantActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_NONE, Gene::ACTION_EAT };
-const std::array<int, 2> wallActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
-const std::array<int, 2> weakActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
-
-//
-const std::array<wxPoint,8> directions {
-    wxPoint(1,0),
-    wxPoint(1,1),
-    wxPoint(0,1),
-    wxPoint(-1,1),
-    wxPoint(-1,0),
-    wxPoint(-1,-1),
-    wxPoint(0,-1),
-    wxPoint(1,-1)
-};
+static const std::array<int, 4> emptyActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_MOVE, Gene::ACTION_NONE };
+static const std::array<int, 3> otherActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_ATTACK };
+static const std::array<int, 3> sameActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_ATTACK };
+static const std::array<int, 4> meatActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_NONE, Gene::ACTION_EAT };
+static const std::array<int, 4> plantActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_NONE, Gene::ACTION_EAT };
+static const std::array<int, 2> wallActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
+static const std::array<int, 2> weakActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R };
+static const std::array<int, 3> deadActions { Gene::ACTION_TURN_L, Gene::ACTION_TURN_R, Gene::ACTION_NONE };
 
 Cell::Cell(World* _world, const wxString& geneName): Entity(_world)
 {
@@ -748,6 +737,17 @@ Cell::~Cell() {}
 
 wxPoint Cell::GenerateDirection()
 {
+    static const std::array<wxPoint,8> directions {
+        wxPoint(1,0),
+        wxPoint(1,1),
+        wxPoint(0,1),
+        wxPoint(-1,1),
+        wxPoint(-1,0),
+        wxPoint(-1,-1),
+        wxPoint(0,-1),
+        wxPoint(1,-1)
+    };
+
     return directions[effolkronium::random_static::get<int>(0, directions.size()-1)];
 }
 
@@ -787,7 +787,8 @@ void Cell::Step()
 
         if (e->IsDead())
         {
-            SetLastBehavior(wxT("defunct"));
+            SetLastBehavior(wxT("dead"));
+            Execute(gen1.dead);
             return;
         }
 
@@ -1024,6 +1025,7 @@ Gene Cell::GenerateGene(const wxString& name)
     newGene.plant = plantActions[effolkronium::random_static::get<int>(0, plantActions.size()-1)];
     newGene.wall = wallActions[effolkronium::random_static::get<int>(0, wallActions.size()-1)];
     newGene.weak = weakActions[effolkronium::random_static::get<int>(0, weakActions.size()-1)];
+    newGene.dead = deadActions[effolkronium::random_static::get<int>(0, deadActions.size()-1)];
 
     return newGene;
 }
@@ -1040,10 +1042,11 @@ Gene Cell::MutateGene(const Gene& _gene)
         MEAT,
         PLANT,
         WALL,
-        WEAK
+        WEAK,
+        DEAD
     };
 
-    switch (effolkronium::random_static::get<int>(EMPTY, WEAK))
+    switch (effolkronium::random_static::get<int>(EMPTY, DEAD))
     {
     case EMPTY:
         newGene.empty = emptyActions[effolkronium::random_static::get<int>(0, emptyActions.size()-1)];
@@ -1065,6 +1068,9 @@ Gene Cell::MutateGene(const Gene& _gene)
         break;
     case WEAK:
         newGene.weak = weakActions[effolkronium::random_static::get<int>(0, weakActions.size()-1)];
+        break;
+    case DEAD:
+        newGene.dead = deadActions[effolkronium::random_static::get<int>(0, deadActions.size()-1)];
         break;
     default:
         break;

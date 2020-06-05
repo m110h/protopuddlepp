@@ -4,7 +4,7 @@ GenesFrame::GenesFrame(wxWindow *parent, const wxSize& size): wxFrame(parent, wx
 {
     genTable = new wxGrid(this, wxID_ANY);
 
-    genTable->CreateGrid(0, 8);
+    genTable->CreateGrid(0, 9);
     genTable->SetRowLabelSize(0);
     genTable->EnableEditing(false);
     genTable->DisableDragGridSize();
@@ -19,6 +19,7 @@ GenesFrame::GenesFrame(wxWindow *parent, const wxSize& size): wxFrame(parent, wx
     genTable->SetColLabelValue(5, wxT("Plant"));
     genTable->SetColLabelValue(6, wxT("Wall"));
     genTable->SetColLabelValue(7, wxT("Weak"));
+    genTable->SetColLabelValue(8, wxT("Dead"));
 
     Layout();
     // Fit(); //?
@@ -62,6 +63,7 @@ bool GenesFrame::AddGene(const ProtoPuddle::Gene& g)
     genTable->SetCellValue(row, 5, ActionToString(g.plant));
     genTable->SetCellValue(row, 6, ActionToString(g.wall));
     genTable->SetCellValue(row, 7, ActionToString(g.weak));
+    genTable->SetCellValue(row, 8, ActionToString(g.dead));
 
     return true;
 }

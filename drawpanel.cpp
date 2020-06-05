@@ -19,6 +19,18 @@ BasicDrawPanel::BasicDrawPanel(wxWindow* parent, wxWindowID id, const wxSize& si
 #endif // __WXMSW__
 #endif // wxUSE_GRAPHICS_CONTEXT
 
+    this->Bind(wxEVT_SIZE, [&](wxSizeEvent& event){
+        onSize(event);
+    });
+
+    this->Bind(wxEVT_LEFT_UP, [&](wxMouseEvent& event){
+        mouseReleased(event);
+    });
+
+    this->Bind(wxEVT_PAINT, [&](wxPaintEvent& event){
+        onPaint(event);
+    });
+
 }
 
 void BasicDrawPanel::onSize(wxSizeEvent& event)
@@ -96,25 +108,3 @@ void BasicDrawPanel::softwareRender(wxDC* dc)
             world->Draw(dc);
     }
 }
-
-BEGIN_EVENT_TABLE(BasicDrawPanel, wxPanel)
-    /*
-    EVT_MOTION(BasicDrawPanel::mouseMoved)
-    EVT_LEFT_DOWN(BasicDrawPanel::mouseDown)
-    EVT_LEFT_UP(BasicDrawPanel::mouseReleased)
-    EVT_RIGHT_DOWN(BasicDrawPanel::rightClick)
-    EVT_LEAVE_WINDOW(BasicDrawPanel::mouseLeftWindow)
-    EVT_KEY_DOWN(BasicDrawPanel::keyPressed)
-    EVT_KEY_UP(BasicDrawPanel::keyReleased)
-    EVT_MOUSEWHEEL(BasicDrawPanel::mouseWheelMoved)
-    */
-
-    EVT_LEFT_UP(BasicDrawPanel::mouseReleased)
-
-    // catch paint events
-    EVT_PAINT(BasicDrawPanel::onPaint)
-
-    // catch resize events
-    EVT_SIZE(BasicDrawPanel::onSize)
-
-END_EVENT_TABLE()
