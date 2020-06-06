@@ -27,10 +27,8 @@ World::World(GlobalProperties* _properties)
 
 World::~World()
 {
-    ClearEntitiesList();
     ClearEntitiesTable();
-
-    emptyPoints.clear();
+    ClearEmptyPoints();
 }
 
 void World::New()
@@ -43,7 +41,6 @@ void World::New()
     meatCounter = 0;
     cellsCounter = 0;
 
-    ClearEntitiesList();
     ClearEntitiesTable();
 
     worldSize.SetWidth(properties->GetValue(wxString("worldWidth")));
@@ -55,6 +52,30 @@ void World::New()
     GenerateEntities(Entity::TYPE_CELL, properties->GetValue(wxString("sortsOfCell")));
 }
 
+void World::StepEntities()
+{
+    Entity* entities[worldSize.GetWidth()*worldSize.GetHeight()];
+
+    size_t count = 0;
+
+    for (int i=0; i<worldSize.GetWidth(); i++)
+    {
+        for (int j=0; j<worldSize.GetHeight(); j++)
+        {
+            if (entitiesTable[i][j])
+            {
+                entities[count] = entitiesTable[i][j];
+                count++;
+            }
+        }
+    }
+
+    for (size_t i=0; i<count; i++)
+    {
+        entities[i]->Step();
+    }
+}
+
 void World::Step()
 {
     if (steps == std::numeric_limits<int>::max())
@@ -63,13 +84,7 @@ void World::Step()
     }
 
     GenerateEntities(Entity::TYPE_PLANT, properties->GetValue(wxString("plantsPerStep")));
-
-    for (Entity* e: entitiesList)
-    {
-        if (e)
-            e->Step();
-    }
-
+    StepEntities();
     DeathHandle();
 
     steps++;
@@ -96,23 +111,14 @@ bool World::IsInside(const wxPoint& worldPosition)
     return (worldPosition.x >= 0) && (worldPosition.x < worldSize.GetWidth()) && (worldPosition.y >= 0) && (worldPosition.y < worldSize.GetHeight());
 }
 
-Entity* World::GetEntity(const wxPoint& worldPosition)
+Entity* World::GetEntityByPosition(const wxPoint& worldPosition)
 {
-    /*
-    for (Entity* e: entitiesList)
-    {
-        if (e && (worldPosition == e->GetPosition()) )
-            return e;
-    }
-    return nullptr;
-    */
-
     return entitiesTable[worldPosition.x][worldPosition.y];
 }
 
 int World::GetEntityIdByPosition(const wxPoint& worldPosition)
 {
-    Entity* e = GetEntity(worldPosition);
+    Entity* e = GetEntityByPosition(worldPosition);
 
     if (nullptr == e)
         return -1;
@@ -122,10 +128,13 @@ int World::GetEntityIdByPosition(const wxPoint& worldPosition)
 
 Entity* World::GetEntityById(int id)
 {
-    for (Entity* e: entitiesList)
+    for (int i=0; i<worldSize.GetWidth(); i++)
     {
-        if (e && (id == e->GetId()) )
-            return e;
+        for (int j=0; j<worldSize.GetHeight(); j++)
+        {
+            if ( (entitiesTable[i][j]) && (id == entitiesTable[i][j]->GetId()) )
+                return entitiesTable[i][j];
+        }
     }
 
     return nullptr;
@@ -213,8 +222,6 @@ void World::AddEntity(Entity* e)
 
     wxPoint p = e->GetPosition();
     entitiesTable[p.x][p.y] = e;
-
-    entitiesList.push_front(e);
 
     switch (e->GetType())
     {
@@ -340,10 +347,13 @@ void World::DrawBoard(wxDC* dc)
 
 void World::DrawEntities(wxDC* dc)
 {
-    for (Entity* e: entitiesList)
+    for (int i=0; i<worldSize.GetWidth(); i++)
     {
-        if (e)
-            e->Draw(dc);
+        for (int j=0; j<worldSize.GetHeight(); j++)
+        {
+            if (entitiesTable[i][j])
+                entitiesTable[i][j]->Draw(dc);
+        }
     }
 
     Entity* se = GetSelectedEntity();
@@ -362,7 +372,7 @@ void World::GenerateEmptyPoints()
         {
             wxPoint p(i,j);
 
-            if (nullptr == GetEntity(p))
+            if (nullptr == GetEntityByPosition(p))
             {
                 emptyPoints.push_back(p);
             }
@@ -437,6 +447,7 @@ void World::GenerateEntities(int type, int quantity)
 
 void World::DeathHandle()
 {
+    /*
     auto iter = entitiesList.begin();
 
     while (iter != entitiesList.end())
@@ -487,26 +498,70 @@ void World::DeathHandle()
             ++iter;
         }
     }
+    */
+
+    for (int i=0; i<worldSize.GetWidth(); i++)
+    {
+        for (int j=0; j<worldSize.GetHeight(); j++)
+        {
+            Entity* e = entitiesTable[i][j];
+
+            if ( e && e->IsDead() )
+            {
+                if ( e->GetType() == Entity::TYPE_PLANT || e->GetType() == Entity::TYPE_MEAT )
+                {
+                    switch (e->GetType())
+                    {
+                    case Entity::TYPE_PLANT:
+                        plantsCounter--;
+                        break;
+                    case Entity::TYPE_MEAT:
+                        meatCounter--;
+                        break;
+                    default:
+                        break;
+                    }
+
+                    wxPoint p = e->GetPosition();
+                    entitiesTable[p.x][p.y] = nullptr;
+
+                    ReleasePoint(p);
+                    delete e;
+                }
+                else if ( e->GetType() == Entity::TYPE_CELL )
+                {
+                    wxPoint p = e->GetPosition();
+                    delete e;
+
+                    e = new Meat(this);
+                    e->SetPosition(p);
+
+                    entitiesTable[p.x][p.y] = e;
+
+                    cellsCounter--;
+                    meatCounter++;
+                }
+            }
+        }
+    }
 }
 
 void World::ClearEntitiesTable()
 {
-    for (int i=0; i<maxWorldWidth; i++)
-        for (int j=0; j<maxWorldHeight; j++)
+    for (int i=0; i<worldSize.GetWidth(); i++)
+        for (int j=0; j<worldSize.GetHeight(); j++)
         {
-            entitiesTable[i][j] = nullptr;
+            if (entitiesTable[i][j])
+            {
+                delete entitiesTable[i][j];
+                entitiesTable[i][j] = nullptr;
+            }
         }
 }
 
-void World::ClearEntitiesList()
+void World::ClearEmptyPoints()
 {
-    for (Entity* e: entitiesList)
-    {
-        if (e)
-            delete e;
-    }
-
-    entitiesList.clear();
+    emptyPoints.clear();
 }
 
 std::tuple<int, int, int> World::GetEntitiesQuantity()
@@ -776,7 +831,7 @@ void Cell::Step()
             return;
         }
 
-        Entity* e = world->GetEntity(p);
+        Entity* e = world->GetEntityByPosition(p);
 
         if (e == nullptr)
         {
@@ -911,6 +966,26 @@ void Cell::SetLastBehavior(const wxString& behavior)
     lastBehavior = behavior;
 }
 
+/*
+bool World::MoveEntity(Entity* e, const wxPoint& newPosition)
+{
+    if (e && LeaseEmptyPoint(newPosition))
+    {
+        wxPoint position = e->GetPosition();
+
+        entitiesTable[position.x][position.y] = nullptr;
+        ReleasePoint(position);
+
+        e->SetPosition(newPosition);
+        entitiesTable[newPosition.x][newPosition.y] = e;
+
+        return true;
+    }
+
+    return false;
+}
+*/
+
 void Cell::Execute(int cmd)
 {
     if (cmd == Gene::ACTION_TURN_L)
@@ -942,14 +1017,19 @@ void Cell::Execute(int cmd)
     if (cmd == Gene::ACTION_MOVE)
     {
         wxPoint p = position + direction;
-
+/*
+        if (world->MoveEntity(this, p))
+        {
+            energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
+        }
+*/
         if (world->LeaseEmptyPoint(p))
         {
             entitiesTable[position.x][position.y] = nullptr;
             world->ReleasePoint(position);
 
             SetPosition(p);
-            entitiesTable[p.x][p.y] = this;
+            entitiesTable[p.x][p.y] = static_cast<Entity*>(this);
 
             energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
         }
@@ -965,7 +1045,7 @@ void Cell::Execute(int cmd)
     if (cmd == Gene::ACTION_ATTACK)
     {
         wxPoint p = position + direction;
-        Entity* e = world->GetEntity(p);
+        Entity* e = world->GetEntityByPosition(p);
 
         if (e && e->GetType() == TYPE_CELL)
         {
@@ -991,7 +1071,7 @@ void Cell::Execute(int cmd)
     if (cmd == Gene::ACTION_EAT)
     {
         wxPoint p = position + direction;
-        Entity* e = world->GetEntity(p);
+        Entity* e = world->GetEntityByPosition(p);
 
         if (e)
         {
@@ -1097,7 +1177,7 @@ bool Cell::CanDivide()
     // if an energy enough
     // if movement to forward field is possible
     // if forward field is empty
-    return ( (energy >= divEnergy) && world->IsInside(p) && (world->GetEntity(p) == nullptr) );
+    return ( (energy >= divEnergy) && world->IsInside(p) && (world->GetEntityByPosition(p) == nullptr) );
 }
 
 wxString Cell::Get(const wxString& name)

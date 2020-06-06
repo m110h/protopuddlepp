@@ -8,7 +8,6 @@
 #endif
 
 #include <vector>
-#include <list>
 #include <tuple>
 
 #include "gene.h"
@@ -34,7 +33,7 @@ public:
     void SetProperties(GlobalProperties* _properties);
     GlobalProperties* GetProperties();
 
-    Entity* GetEntity(const wxPoint& worldPosition);
+    Entity* GetEntityByPosition(const wxPoint& worldPosition);
     Entity* GetEntityById(int id);
 
     int GetEntityIdByPosition(const wxPoint& worldPosition);
@@ -60,6 +59,7 @@ public:
     wxRect GetBoardBoundingBox();
 
     void AddEntity(Entity* e);
+    //bool MoveEntity(Entity* e, const wxPoint& newPosition);
 
     bool OpenFromFile(const wxString& filename);
     bool SaveToFile(const wxString& filename);
@@ -69,6 +69,8 @@ public:
     void ReleasePoint(const wxPoint& point);
 
 private:
+    void StepEntities();
+
     void DrawBoard(wxDC* dc);
     void DrawEntities(wxDC* dc);
 
@@ -79,11 +81,10 @@ private:
     void DeathHandle();
 
     void ClearEntitiesTable();
-    void ClearEntitiesList();
+    void ClearEmptyPoints();
 
 private:
     std::vector<wxPoint> emptyPoints;
-    std::list<Entity*> entitiesList;
 
     int nextId {0};
     int selectedId {-1};
