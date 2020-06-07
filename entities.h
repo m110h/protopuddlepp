@@ -20,6 +20,7 @@ namespace ProtoPuddle
 {
 
 class Entity;
+class Cell;
 
 class World
 {
@@ -59,7 +60,7 @@ public:
     wxRect GetBoardBoundingBox();
 
     void AddEntity(Entity* e);
-    //bool MoveEntity(Entity* e, const wxPoint& newPosition);
+    bool MoveEntity(Entity* e, const wxPoint& newPosition);
 
     bool OpenFromFile(const wxString& filename);
     bool SaveToFile(const wxString& filename);

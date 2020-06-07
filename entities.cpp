@@ -236,6 +236,24 @@ void World::AddEntity(Entity* e)
     }
 }
 
+bool World::MoveEntity(Entity* e, const wxPoint& newPosition)
+{
+    if (e && LeaseEmptyPoint(newPosition))
+    {
+        wxPoint position = e->GetPosition();
+
+        entitiesTable[position.x][position.y] = nullptr;
+        ReleasePoint(position);
+
+        e->SetPosition(newPosition);
+        entitiesTable[newPosition.x][newPosition.y] = e;
+
+        return true;
+    }
+
+    return false;
+}
+
 bool World::OpenFromFile(const wxString& filename)
 {
     std::ifstream in(filename.c_str().AsChar());
@@ -932,23 +950,19 @@ void Cell::SetGene(const Gene& _gene)
 
 void Cell::Clone()
 {
+    wxPoint oldPosition = position;
     wxPoint newPosition = position + direction;
 
-    if (world->LeaseEmptyPoint(newPosition))
+    if (world->MoveEntity(this, newPosition))
     {
-        energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
+        energy = (energy - world->GetProperties()->GetValue(wxString("movementEnergy"))) / 2;
 
         Entity* child = new Cell(world, divEnergy, damage, mutationProbability, color, gen1);
-        child->SetPosition(position);
 
-        energy /= 2;
+        child->SetPosition(oldPosition);
         child->SetEnergy(energy);
 
         world->AddEntity(child);
-
-        SetPosition(newPosition);
-        entitiesTable[newPosition.x][newPosition.y] = this;
-
         childrenCounter++;
     }
 }
@@ -965,26 +979,6 @@ void Cell::SetLastBehavior(const wxString& behavior)
 {
     lastBehavior = behavior;
 }
-
-/*
-bool World::MoveEntity(Entity* e, const wxPoint& newPosition)
-{
-    if (e && LeaseEmptyPoint(newPosition))
-    {
-        wxPoint position = e->GetPosition();
-
-        entitiesTable[position.x][position.y] = nullptr;
-        ReleasePoint(position);
-
-        e->SetPosition(newPosition);
-        entitiesTable[newPosition.x][newPosition.y] = e;
-
-        return true;
-    }
-
-    return false;
-}
-*/
 
 void Cell::Execute(int cmd)
 {
@@ -1017,20 +1011,9 @@ void Cell::Execute(int cmd)
     if (cmd == Gene::ACTION_MOVE)
     {
         wxPoint p = position + direction;
-/*
+
         if (world->MoveEntity(this, p))
         {
-            energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
-        }
-*/
-        if (world->LeaseEmptyPoint(p))
-        {
-            entitiesTable[position.x][position.y] = nullptr;
-            world->ReleasePoint(position);
-
-            SetPosition(p);
-            entitiesTable[p.x][p.y] = static_cast<Entity*>(this);
-
             energy -= world->GetProperties()->GetValue(wxString("movementEnergy"));
         }
 
@@ -1171,12 +1154,7 @@ wxColor Cell::GenerateColor()
 bool Cell::CanDivide()
 {
     wxPoint p = position;
-
     p += direction;
-
-    // if an energy enough
-    // if movement to forward field is possible
-    // if forward field is empty
     return ( (energy >= divEnergy) && world->IsInside(p) && (world->GetEntityByPosition(p) == nullptr) );
 }
 
