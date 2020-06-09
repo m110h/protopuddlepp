@@ -28,6 +28,8 @@ public:
     void OnQuit(wxCommandEvent& event);
     void OnSimulation(wxCommandEvent& event);
     void OnStep(wxCommandEvent& event);
+    void OnSwitchDrawWorld(wxCommandEvent& event);
+    void OnSwitchAntialiasing(wxCommandEvent& event);
     void OnShowLog(wxCommandEvent& event);
     void OnProperties(wxCommandEvent& event);
     void OnDescription(wxCommandEvent& event);
@@ -36,6 +38,8 @@ public:
     enum {
         myID_MENU_EDIT_SIMULATION,
         myID_MENU_EDIT_STEP,
+        myID_MENU_EDIT_DRAW_WORLD,
+        myID_MENU_EDIT_ANTIALIASING,
         myID_MENU_EDIT_SHOW_LOG,
         myID_MENU_EDIT_PROPERTIES,
         myID_MENU_HELP_SHOW_DESCRIPTION
@@ -81,9 +85,12 @@ private:
     BasicDrawPanel* worldView {nullptr};
     ProtoPuddle::World* world {nullptr};
 
+    bool drawWorldFlag {true};
+
 private:
     void UpdateQuickSettings();
     void UpdateInformation();
+    void UpdateMemoryInformation();
 
     void NewWorld();
     void Step();
@@ -140,10 +147,10 @@ void MyFrame::NewWorld()
     worldView->paintNow();
 
     UpdateInformation();
+    UpdateMemoryInformation();
 
-    SetStatusText(wxString::Format("%s%d", "Steps: ", world->GetSteps()), 2);
     SetStatusText(wxT("Ready"), 0);
-    SetStatusText(wxT("New action performed"), 1);
+    SetStatusText(wxT("Action 'New' has been performed"), 1);
 }
 
 void MyFrame::OnNew(wxCommandEvent& event) {
@@ -162,7 +169,9 @@ void MyFrame::OnOpen(wxCommandEvent& WXUNUSED(event))
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (world->OpenFromFile(dlg.GetPath()))
+        auto [flag, error] = world->OpenFromFile(dlg.GetPath());
+
+        if (flag)
         {
             NewWorld();
             UpdateQuickSettings();
@@ -170,7 +179,7 @@ void MyFrame::OnOpen(wxCommandEvent& WXUNUSED(event))
         }
         else
         {
-            wxMessageBox(wxT("Can't load configuration file, because it isn't correct."), wxT("Error"), wxOK | wxICON_INFORMATION, this);
+            wxMessageBox(error, wxT("Error"), wxOK | wxICON_INFORMATION, this);
         }
     }
 }
@@ -209,7 +218,7 @@ void MyFrame::OnStep(wxCommandEvent& event)
 void MyFrame::OnShowLog(wxCommandEvent& event)
 {
     wxMessageBox(wxT("This will be realesed in the future"), wxT("Log"), wxOK | wxICON_INFORMATION, this);
-    SetStatusText(wxT("Show log action performed"), 1);
+    SetStatusText(wxT("Action 'Show log' has been performed"), 1);
 }
 
 void MyFrame::OnProperties(wxCommandEvent& event)
@@ -217,10 +226,38 @@ void MyFrame::OnProperties(wxCommandEvent& event)
     ShowPropertiesEditor(this);
 }
 
+void MyFrame::OnSwitchDrawWorld(wxCommandEvent& event)
+{
+    drawWorldFlag = !drawWorldFlag;
+
+    if (drawWorldFlag)
+    {
+        worldView->paintNow();
+
+        SetStatusText(wxT("Drawing is enabled"), 1);
+    }
+    else
+    {
+        SetStatusText(wxT("Drawing is disabled"), 1);
+    }
+}
+
+void MyFrame::OnSwitchAntialiasing(wxCommandEvent& event)
+{
+    if (worldView->SwitchAntialiasingMode())
+    {
+        SetStatusText(wxT("Antialiasing is enabled"), 1);
+    }
+    else
+    {
+        SetStatusText(wxT("Antialiasing is disabled"), 1);
+    }
+}
+
 void MyFrame::OnDescription(wxCommandEvent& event)
 {
     wxMessageBox(wxT("This will be released in the future"), wxT("Description"), wxOK | wxICON_INFORMATION, this);
-    SetStatusText(wxT("Description action performed"), 1);
+    SetStatusText(wxT("Action 'Description' has been performed"), 1);
 }
 
 void MyFrame::OnAbout(wxCommandEvent& event)
@@ -267,7 +304,6 @@ void MyFrame::StartSimulation()
 
         timer.Start(1000 / properties.GetValue(wxString("stepsPerSecond")));
 
-        SetStatusText(wxT("Running"), 0);
         SetStatusText(wxT("Simulation has been started"), 1);
     }
     else {
@@ -355,14 +391,28 @@ void MyFrame::UpdateInformation()
     }
 }
 
+void MyFrame::UpdateMemoryInformation()
+{
+    auto [total, used, peak] = world->GetAllocationMemory();
+    SetStatusText(
+        wxString::Format("%s%llu%s%llu%s%llu", " [Memory] -> Total: ", total, " | Used: ", used, " | Peak: ", peak),
+        2
+    );
+}
+
 void MyFrame::Step()
 {
     world->Step();
-    worldView->paintNow();
+
+    if (drawWorldFlag)
+    {
+        worldView->paintNow();
+    }
 
     UpdateInformation();
+    UpdateMemoryInformation();
 
-    SetStatusText(wxString::Format("%s%d", "Steps: ", world->GetSteps()), 2);
+    SetStatusText(wxString::Format("%s%d", "Steps: ", world->GetSteps()), 0);
 }
 
 void MyFrame::ApplySettings(wxCommandEvent& event)
@@ -398,6 +448,8 @@ void MyFrame::MakeMenu()
 
     menuEdit->Append(myID_MENU_EDIT_SIMULATION, wxT("&Start/Stop Simulation\tCtrl+r"));
     menuEdit->Append(myID_MENU_EDIT_STEP, wxT("&One Step\tCtrl+x"));
+    menuEdit->AppendCheckItem(myID_MENU_EDIT_DRAW_WORLD, wxT("Enable &Drawing\tCtrl+d"));
+    menuEdit->AppendCheckItem(myID_MENU_EDIT_ANTIALIASING, wxT("Enable &Antialiasing\tCtrl+a"));
     //menuEdit->Append(myID_MENU_EDIT_SHOW_LOG, wxT("Show &Log\tCtrl+l"));
     menuEdit->Append(myID_MENU_EDIT_PROPERTIES, wxT("&Properties\tCtrl+p"));
 
@@ -409,6 +461,9 @@ void MyFrame::MakeMenu()
     menuBar->Append(menuFile, wxT("&File"));
     menuBar->Append(menuEdit, wxT("&Edit"));
     menuBar->Append(menuHelp, wxT("&Help"));
+
+    menuBar->Check(myID_MENU_EDIT_DRAW_WORLD, true);
+    menuBar->Check(myID_MENU_EDIT_ANTIALIASING, true);
 
     this->SetMenuBar(menuBar);
 
@@ -432,6 +487,12 @@ void MyFrame::MakeMenu()
             break;
         case myID_MENU_EDIT_STEP:
             OnStep(event);
+            break;
+        case myID_MENU_EDIT_DRAW_WORLD:
+            OnSwitchDrawWorld(event);
+            break;
+        case myID_MENU_EDIT_ANTIALIASING:
+            OnSwitchAntialiasing(event);
             break;
         //case myID_MENU_EDIT_SHOW_LOG:
         //    OnShowLog(event);
@@ -458,7 +519,8 @@ void MyFrame::MakeStatusBar()
 
     SetStatusText(wxT("Ready"), 0);
     SetStatusText(wxT("No actions performed"), 1);
-    SetStatusText(wxString::Format("%s%d", "Steps: ", 0), 2);
+
+    UpdateMemoryInformation();
 }
 
 void MyFrame::MakeLayout()

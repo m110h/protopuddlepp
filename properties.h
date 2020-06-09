@@ -80,8 +80,23 @@ public:
         {
             _properties[name] = property;
         }
+        else
+        {
+            _properties.insert( std::pair<wxString,Property>(name,property) );
+        }
+    }
 
-        _properties.insert( std::pair<wxString,Property>(name,property) );
+    bool CheckValue(const wxString& name, int value)
+    {
+        if (IsExist(name))
+        {
+            if (value >= _properties[name].min && value <= _properties[name].max)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void SetValue(const wxString& name, int value)
@@ -91,7 +106,9 @@ public:
             //_properties.erase(_properties.find(name));
 
             if (value >= _properties[name].min && value <= _properties[name].max)
+            {
                 _properties[name].value = value;
+            }
         }
     }
 
@@ -141,7 +158,7 @@ public:
 
 private:
     std::map<wxString,Property> _properties {
-        { wxT("sortsOfCell"), Property(5,1,100) },
+        { wxT("sortsOfCell"), Property(5,0,100) },
         { wxT("cellEnergy"), Property(100,1,1000) },
         { wxT("maxDamage"), Property(30,1,500) },
         { wxT("behaviorGenes"), Property(1,1,10) },

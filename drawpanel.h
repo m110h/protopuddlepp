@@ -35,6 +35,8 @@ public:
     void paintNow();
     void SetWorld(ProtoPuddle::World* _world);
 
+    bool SwitchAntialiasingMode();
+
 private:
     void softwareRender(wxDC* dc);
 
@@ -45,6 +47,8 @@ private:
     double yUserScale {1.f};
 
     ProtoPuddle::World* world {nullptr};
+
+    bool antialiasingFlag {true};
 };
 
 

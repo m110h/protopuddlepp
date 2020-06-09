@@ -20,7 +20,6 @@ namespace ProtoPuddle
 {
 
 class Entity;
-class Cell;
 
 class World
 {
@@ -42,7 +41,11 @@ public:
     void SelectEntityByPosition(const wxPoint& worldPosition);
     Entity* GetSelectedEntity();
 
+    // returns plants, meat, cells
     std::tuple<int, int, int> GetEntitiesQuantity();
+
+    // returns total, used, peak
+    std::tuple<std::size_t, std::size_t, std::size_t> GetAllocationMemory();
 
     bool IsInside(const wxPoint& worldPosition);
 
@@ -62,7 +65,7 @@ public:
     void AddEntity(Entity* e);
     bool MoveEntity(Entity* e, const wxPoint& newPosition);
 
-    bool OpenFromFile(const wxString& filename);
+    std::tuple<bool, wxString> OpenFromFile(const wxString& filename);
     bool SaveToFile(const wxString& filename);
 
     bool LeaseEmptyPoint(const wxPoint& point);

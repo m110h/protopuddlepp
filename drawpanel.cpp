@@ -70,6 +70,11 @@ void BasicDrawPanel::SetWorld(ProtoPuddle::World* _world)
     world = _world;
 }
 
+bool BasicDrawPanel::SwitchAntialiasingMode()
+{
+    return (antialiasingFlag = !antialiasingFlag);
+}
+
 void BasicDrawPanel::softwareRender(wxDC* dc)
 {
     if (renderer)
@@ -89,8 +94,14 @@ void BasicDrawPanel::softwareRender(wxDC* dc)
             return;
         }
 
-        context->SetAntialiasMode(wxANTIALIAS_DEFAULT);
-        //context->SetAntialiasMode(wxANTIALIAS_NONE);
+        if (antialiasingFlag)
+        {
+            context->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+        }
+        else
+        {
+            context->SetAntialiasMode(wxANTIALIAS_NONE);
+        }
 
         wxGCDC gdc;
 

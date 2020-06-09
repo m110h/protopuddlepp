@@ -8,6 +8,9 @@
 
 #include "entities.h"
 
+#include "thirdparty/allocator/freelistallocator.h"
+//#include "thirdparty/allocator/callocator.h"
+
 #include <array>
 #include <limits>
 #include <iomanip>
@@ -18,11 +21,14 @@
 namespace ProtoPuddle
 {
 
-Entity* entitiesTable[maxWorldWidth][maxWorldHeight];
+Entity* entitiesTable[maxWorldWidth][maxWorldHeight] = {nullptr};
+
+FreeListAllocator _allocator(sizeof(Cell)*(maxWorldWidth*maxWorldHeight), FreeListAllocator::FIND_FIRST);
 
 World::World(GlobalProperties* _properties)
 {
     SetProperties(_properties);
+    _allocator.Init();
 }
 
 World::~World()
@@ -42,6 +48,8 @@ void World::New()
     cellsCounter = 0;
 
     ClearEntitiesTable();
+
+    _allocator.Reset();
 
     worldSize.SetWidth(properties->GetValue(wxString("worldWidth")));
     worldSize.SetHeight(properties->GetValue(wxString("worldHeight")));
@@ -218,22 +226,18 @@ wxRect World::GetBoardBoundingBox()
 
 void World::AddEntity(Entity* e)
 {
-    assert(e && "AddEntity: entity is nullptr");
-
     wxPoint p = e->GetPosition();
-    entitiesTable[p.x][p.y] = e;
 
-    switch (e->GetType())
+    if (e->GetType() == Entity::TYPE_PLANT)
     {
-    case Entity::TYPE_PLANT:
         plantsCounter++;
-        break;
-    case Entity::TYPE_CELL:
-        cellsCounter++;
-        break;
-    default:
-        break;
     }
+    else
+    {
+        cellsCounter++;
+    }
+
+    entitiesTable[p.x][p.y] = e;
 }
 
 bool World::MoveEntity(Entity* e, const wxPoint& newPosition)
@@ -254,7 +258,7 @@ bool World::MoveEntity(Entity* e, const wxPoint& newPosition)
     return false;
 }
 
-bool World::OpenFromFile(const wxString& filename)
+std::tuple<bool, wxString> World::OpenFromFile(const wxString& filename)
 {
     std::ifstream in(filename.c_str().AsChar());
 
@@ -267,10 +271,173 @@ bool World::OpenFromFile(const wxString& filename)
     catch (const std::exception& e)
     {
         in.close();
-        return false;
+        return { false, wxT("Configuration file is invalid. Please, check its syntax.") };
     }
 
     in.close();
+
+    int _min = 0;
+    int _max = 0;
+
+    if (!properties->CheckValue(wxString("sortsOfCell"), config["world"]["sortsOfCell"]))
+    {
+        _min = properties->GetMin(wxString("sortsOfCell"));
+        _max = properties->GetMin(wxString("sortsOfCell"));
+
+        return { false, wxString::Format(wxT("Value of 'sortsOfCell' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("cellEnergy"), config["world"]["cellEnergy"]))
+    {
+        _min = properties->GetMin(wxString("cellEnergy"));
+        _max = properties->GetMin(wxString("cellEnergy"));
+
+        return { false, wxString::Format(wxT("Value of 'cellEnergy' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("maxDamage"), config["world"]["maxDamage"]))
+    {
+        _min = properties->GetMin(wxString("maxDamage"));
+        _max = properties->GetMin(wxString("maxDamage"));
+
+        return { false, wxString::Format(wxT("Value of 'maxDamage' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("behaviorGenes"), config["world"]["behaviorGenes"]))
+    {
+        _min = properties->GetMin(wxString("behaviorGenes"));
+        _max = properties->GetMin(wxString("behaviorGenes"));
+
+        return { false, wxString::Format(wxT("Value of 'behaviorGenes' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("minEnergyForDivision"), config["world"]["minEnergyForDivision"]))
+    {
+        _min = properties->GetMin(wxString("minEnergyForDivision"));
+        _max = properties->GetMin(wxString("minEnergyForDivision"));
+
+        return { false, wxString::Format(wxT("Value of 'minEnergyForDivision' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("maxEnergyForDivision"), config["world"]["maxEnergyForDivision"]))
+    {
+        _min = properties->GetMin(wxString("maxEnergyForDivision"));
+        _max = properties->GetMin(wxString("maxEnergyForDivision"));
+
+        return { false, wxString::Format(wxT("Value of 'maxEnergyForDivision' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("plants"), config["world"]["plants"]))
+    {
+        _min = properties->GetMin(wxString("plants"));
+        _max = properties->GetMin(wxString("plants"));
+
+        return { false, wxString::Format(wxT("Value of 'plants' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("plantEnergy"), config["world"]["plantEnergy"]))
+    {
+        _min = properties->GetMin(wxString("plantEnergy"));
+        _max = properties->GetMin(wxString("plantEnergy"));
+
+        return { false, wxString::Format(wxT("Value of 'plantEnergy' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("meatEnergy"), config["world"]["meatEnergy"]))
+    {
+        _min = properties->GetMin(wxString("meatEnergy"));
+        _max = properties->GetMin(wxString("meatEnergy"));
+
+        return { false, wxString::Format(wxT("Value of 'meatEnergy' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("maxAge"), config["world"]["maxAge"]))
+    {
+        _min = properties->GetMin(wxString("maxAge"));
+        _max = properties->GetMin(wxString("maxAge"));
+
+        return { false, wxString::Format(wxT("Value of 'maxAge' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("stepsPerSecond"), config["world"]["stepsPerSecond"]))
+    {
+        _min = properties->GetMin(wxString("stepsPerSecond"));
+        _max = properties->GetMin(wxString("stepsPerSecond"));
+
+        return { false, wxString::Format(wxT("Value of 'stepsPerSecond' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("plantsPerStep"), config["world"]["plantsPerStep"]))
+    {
+        _min = properties->GetMin(wxString("plantsPerStep"));
+        _max = properties->GetMin(wxString("plantsPerStep"));
+
+        return { false, wxString::Format(wxT("Value of 'plantsPerStep' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("worldWidth"), config["world"]["worldWidth"]))
+    {
+        _min = properties->GetMin(wxString("worldWidth"));
+        _max = properties->GetMin(wxString("worldWidth"));
+
+        return { false, wxString::Format(wxT("Value of 'worldWidth' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("worldHeight"), config["world"]["worldHeight"]))
+    {
+        _min = properties->GetMin(wxString("worldHeight"));
+        _max = properties->GetMin(wxString("worldHeight"));
+
+        return { false, wxString::Format(wxT("Value of 'worldHeight' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("plantLifeTime"), config["world"]["plantLifeTime"]))
+    {
+        _min = properties->GetMin(wxString("plantLifeTime"));
+        _max = properties->GetMin(wxString("plantLifeTime"));
+
+        return { false, wxString::Format(wxT("Value of 'plantLifeTime' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("meatLifeTime"), config["world"]["meatLifeTime"]))
+    {
+        _min = properties->GetMin(wxString("meatLifeTime"));
+        _max = properties->GetMin(wxString("meatLifeTime"));
+
+        return { false, wxString::Format(wxT("Value of 'meatLifeTime' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("movementEnergy"), config["world"]["movementEnergy"]))
+    {
+        _min = properties->GetMin(wxString("movementEnergy"));
+        _max = properties->GetMin(wxString("movementEnergy"));
+
+        return { false, wxString::Format(wxT("Value of 'movementEnergy' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("attackEnergy"), config["world"]["attackEnergy"]))
+    {
+        _min = properties->GetMin(wxString("attackEnergy"));
+        _max = properties->GetMin(wxString("attackEnergy"));
+
+        return { false, wxString::Format(wxT("Value of 'attackEnergy' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("attackCondition"), config["world"]["attackCondition"]))
+    {
+        _min = properties->GetMin(wxString("attackCondition"));
+        _max = properties->GetMin(wxString("attackCondition"));
+
+        return { false, wxString::Format(wxT("Value of 'attackCondition' must be between %d and %d."), _min, _max) };
+    }
+
+    if (!properties->CheckValue(wxString("maxMutationProbability"), config["world"]["maxMutationProbability"]))
+    {
+        _min = properties->GetMin(wxString("maxMutationProbability"));
+        _max = properties->GetMin(wxString("maxMutationProbability"));
+
+        return { false, wxString::Format(wxT("Value of 'maxMutationProbability' must be between %d and %d."), _min, _max) };
+    }
 
     properties->SetValue(wxString("sortsOfCell"), config["world"]["sortsOfCell"]);
     properties->SetValue(wxString("cellEnergy"), config["world"]["cellEnergy"]);
@@ -293,7 +460,7 @@ bool World::OpenFromFile(const wxString& filename)
     properties->SetValue(wxString("attackCondition"), config["world"]["attackCondition"]);
     properties->SetValue(wxString("maxMutationProbability"), config["world"]["maxMutationProbability"]);
 
-    return true;
+    return { true, wxT("") };
 }
 
 bool World::SaveToFile(const wxString& filename)
@@ -447,16 +614,22 @@ void World::GenerateEntities(int type, int quantity)
         switch (type)
         {
         case Entity::TYPE_PLANT:
-            tmp = new Plant(this);
+            {
+                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),8);
+                new(plt) Plant(this);
+                tmp = plt;
+            }
             break;
         case Entity::TYPE_CELL:
-            tmp = new Cell(this, wxString::Format(wxT("gene%d"), i+1));
+            {
+                Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),8);
+                new(cl) Cell(this, wxString::Format(wxT("gene%d"), i+1));
+                tmp = cl;
+            }
             break;
         default:
             break;
         }
-
-        assert(tmp && "GenerateEntities: entity is nullptr");
 
         tmp->SetPosition(point);
         AddEntity(tmp);
@@ -528,30 +701,42 @@ void World::DeathHandle()
             {
                 if ( e->GetType() == Entity::TYPE_PLANT || e->GetType() == Entity::TYPE_MEAT )
                 {
-                    switch (e->GetType())
+                    wxPoint p = e->GetPosition();
+
+                    entitiesTable[p.x][p.y] = nullptr;
+                    ReleasePoint(p);
+
+                    if (e->GetType() == Entity::TYPE_PLANT)
                     {
-                    case Entity::TYPE_PLANT:
                         plantsCounter--;
-                        break;
-                    case Entity::TYPE_MEAT:
+                    }
+                    else
+                    {
                         meatCounter--;
-                        break;
-                    default:
-                        break;
                     }
 
-                    wxPoint p = e->GetPosition();
-                    entitiesTable[p.x][p.y] = nullptr;
-
-                    ReleasePoint(p);
-                    delete e;
+                    {
+                        e->~Entity();
+                        _allocator.Free(e);
+                    }
                 }
                 else if ( e->GetType() == Entity::TYPE_CELL )
                 {
                     wxPoint p = e->GetPosition();
-                    delete e;
 
-                    e = new Meat(this);
+                    {
+                        e->~Entity();
+                        _allocator.Free(e);
+                    }
+
+                    entitiesTable[p.x][p.y] = nullptr;
+
+                    {
+                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),8);
+                        new(mt) Meat(this);
+                        e = mt;
+                    }
+
                     e->SetPosition(p);
 
                     entitiesTable[p.x][p.y] = e;
@@ -571,7 +756,12 @@ void World::ClearEntitiesTable()
         {
             if (entitiesTable[i][j])
             {
-                delete entitiesTable[i][j];
+                {
+                    Entity* e = entitiesTable[i][j];
+                    e->~Entity();
+                    _allocator.Free(e);
+                }
+
                 entitiesTable[i][j] = nullptr;
             }
         }
@@ -585,6 +775,11 @@ void World::ClearEmptyPoints()
 std::tuple<int, int, int> World::GetEntitiesQuantity()
 {
     return { plantsCounter, meatCounter, cellsCounter };
+}
+
+std::tuple<std::size_t, std::size_t, std::size_t> World::GetAllocationMemory()
+{
+    return { _allocator.GetTotal(), _allocator.GetUsed(), _allocator.GetPeak() };
 }
 
 // ENTITY CLASS
@@ -826,7 +1021,12 @@ wxPoint Cell::GenerateDirection()
 
 void Cell::Step()
 {
-    Entity::Step();
+    if (IsDead())
+    {
+        return;
+    }
+
+    age++;
 
     if (attacked)
     {
@@ -878,11 +1078,11 @@ void Cell::Step()
         case TYPE_CELL:
             if (e->GetColor() == color)
             {
-                SetLastBehavior(wxT("same"));
+                SetLastBehavior(wxT("same cell"));
                 Execute(gen1.same);
             }
             else {
-                SetLastBehavior(wxT("other"));
+                SetLastBehavior(wxT("other cell"));
                 Execute(gen1.other);
             }
             break;
@@ -955,15 +1155,27 @@ void Cell::Clone()
 
     if (world->MoveEntity(this, newPosition))
     {
-        energy = (energy - world->GetProperties()->GetValue(wxString("movementEnergy"))) / 2;
+        if (world->LeaseEmptyPoint(oldPosition))
+        {
+            energy = (energy - world->GetProperties()->GetValue(wxString("movementEnergy"))) / 2;
 
-        Entity* child = new Cell(world, divEnergy, damage, mutationProbability, color, gen1);
+            Entity* child = nullptr;
+            {
+                Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),8);
+                new(cl) Cell(world, divEnergy, damage, mutationProbability, color, gen1);
+                child = cl;
+            }
 
-        child->SetPosition(oldPosition);
-        child->SetEnergy(energy);
+            child->SetPosition(oldPosition);
+            child->SetEnergy(energy);
 
-        world->AddEntity(child);
-        childrenCounter++;
+            world->AddEntity(child);
+            childrenCounter++;
+        }
+        else
+        {
+            assert("Critical error: can't lease an empty point for a child!" && 0);
+        }
     }
 }
 
