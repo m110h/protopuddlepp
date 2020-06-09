@@ -23,9 +23,9 @@ else()
 	message("Configuration: ${CMAKE_BUILD_TYPE}")
 endif()
 
-project(protopuddlepp VERSION 0.5.2 LANGUAGES CXX)
+project(protopuddlepp VERSION 0.6.0 LANGUAGES CXX)
 
-set(sources main.cpp entities.cpp drawpanel.cpp genesframe.cpp propertiesdialog.cpp)
+set(sources main.cpp entities.cpp drawpanel.cpp genesframe.cpp propertiesdialog.cpp thirdparty/allocator/callocator.cpp thirdparty/allocator/freelistallocator.cpp)
 
 add_executable(protopuddlepp ${sources})
 
