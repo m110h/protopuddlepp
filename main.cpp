@@ -369,10 +369,17 @@ void MyFrame::UpdateInformation()
         eatenMeatText->SetLabel(e->Get("eatenMeat"));
         lastBehaviorText->SetLabel(e->Get("lastBehavior"));
 
-        // enable showGenesBtn if disabled
-        showGenesBtn->Enable();
+        if (e->GetType() == ProtoPuddle::Entity::TYPE_CELL)
+        {
+            showGenesBtn->Enable();
+        }
+        else
+        {
+            showGenesBtn->Disable();
+        }
     }
-    else {
+    else
+    {
         idText->SetLabel(ProtoPuddle::unknownValueStr);
         ageText->SetLabel(ProtoPuddle::unknownValueStr);
         maxAgeText->SetLabel(ProtoPuddle::unknownValueStr);
@@ -386,7 +393,6 @@ void MyFrame::UpdateInformation()
         eatenMeatText->SetLabel(ProtoPuddle::unknownValueStr);
         lastBehaviorText->SetLabel(ProtoPuddle::unknownValueStr);
 
-        // disable showGenesBtn if enabled
         showGenesBtn->Disable();
     }
 }
@@ -395,7 +401,7 @@ void MyFrame::UpdateMemoryInformation()
 {
     auto [total, used, peak] = world->GetAllocationMemory();
     SetStatusText(
-        wxString::Format("%s%llu%s%llu%s%llu", " [Memory] -> Total: ", total, " | Used: ", used, " | Peak: ", peak),
+        wxString::Format("%s%llu%s%llu%s%llu", " [Memory in Bytes] -> Total: ", total, " | Used: ", used, " | Peak: ", peak),
         2
     );
 }
@@ -407,6 +413,10 @@ void MyFrame::Step()
     if (drawWorldFlag)
     {
         worldView->paintNow();
+        /*
+        if (world->GetSteps() % 10 == 0)
+            worldView->paintNow();
+        */
     }
 
     UpdateInformation();
