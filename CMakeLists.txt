@@ -25,7 +25,7 @@ endif()
 
 project(protopuddlepp VERSION 0.6.0 LANGUAGES CXX)
 
-set(sources main.cpp entities.cpp drawpanel.cpp genesframe.cpp propertiesdialog.cpp thirdparty/allocator/callocator.cpp thirdparty/allocator/freelistallocator.cpp)
+set(sources main.cpp entities.cpp drawpanel.cpp genesframe.cpp propertiesdialog.cpp thirdparty/allocator/allocator.cpp thirdparty/allocator/callocator.cpp thirdparty/allocator/freelistallocator.cpp)
 
 add_executable(protopuddlepp ${sources})
 

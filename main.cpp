@@ -592,9 +592,9 @@ void MyFrame::MakeLayout()
     vInfoSizer->Add(infoSizer, 0, wxEXPAND);
     vswSizer->Add(vInfoSizer, 0, wxEXPAND | wxALL, 10);
 
-    // Selected Cell Group
+    // Selected Entity Group
 
-    wxStaticBox* selectedGroupBox = new wxStaticBox(sw, wxID_ANY, "Cell Information");
+    wxStaticBox* selectedGroupBox = new wxStaticBox(sw, wxID_ANY, "Entity Information");
     wxStaticBoxSizer * vSelectedSizer = new wxStaticBoxSizer (selectedGroupBox, wxVERTICAL);
 
     wxGridSizer* selectedSizer = new wxGridSizer(12, 2, 3, 0);
