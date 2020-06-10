@@ -1,8 +1,8 @@
 ## Description:
 
-	A simulator of a cell's world with a simple genetic algorithm. A world is a
+	A simulator of a cell's world with a simple genetic algorithm. The world is a
 	rectangular matrix that contains bots (cells). The bot can move, attack another bots,
-	reproduce by division and eat plants and a meat. A bot's behavior is determinated
+	reproduce by division and eat plants and a meat. Bot's behavior is determinated
 	by a gene. The gene has a fixed lenght and describes the behavior in all possible
 	situations. During the division the gene can mutate. One part of parameters the bot
 	inherits from its parent, another part is depended on the parameters of the world and
@@ -23,70 +23,70 @@
 ## Parameters of the world:
 
 	* columns quantity
-		* its name in a configuration file is "worldWidth"
-		* its name in a properties dialog is "Width of cell's world"
+		* its name in configuration file is "worldWidth"
+		* its name in properties dialog is "Width of cell's world"
 
 	* rows quantity
-		* its name in a configuration file is "worldHeight"
-		* its name in a properties dialog is "Height of cell's world"
+		* its name in configuration file is "worldHeight"
+		* its name in properties dialog is "Height of cell's world"
 
-	* a quantity of a simulation steps per second
-		* its name in a configuration file is "stepsPerSecond"
-		* its name in a properties dialog is "Steps per second"
+	* quantity of the simulation steps per second
+		* its name in configuration file is "stepsPerSecond"
+		* its name in properties dialog is "Steps per second"
 
 		! in real, it depends from your hardware
 
-	* a quantity of plants generated per a simulation step
-		* its name in a configuration file is "plantsPerStep"
-		* its name in a properties dialog is "Plants per step"
+	* quantity of plants generated per the simulation step
+		* its name in configuration file is "plantsPerStep"
+		* its name in properties dialog is "Plants per step"
 
-	* an initial quantity of plants
-		* its name in a configuration file is "plants"
-		* its name in a properties dialog is "Initial quantity of plants"
+	* initial quantity of plants
+		* its name in configuration file is "plants"
+		* its name in properties dialog is "Initial quantity of plants"
 
-	* a lifetime of a plant in steps of simulation
-		* its name in a configuration file is "plantLifeTime"
-		* its name in a properties dialog is ...
+	* lifetime of plant in steps of simulation
+		* its name in configuration file is "plantLifeTime"
+		* its name in properties dialog is ...
 
-	* an energy that a cell gets after eating a plant
-		* its name in a configuration file is "plantEnergy"
-		* its name in a properties dialog is "Plant's energy"
+	* energy that cell gets after eating a plant
+		* its name in configuration file is "plantEnergy"
+		* its name in properties dialog is "Plant's energy"
 
-	* an initail quantity of cell's sorts with an unique gene (a zero-generation)
-		* its name in a configuration file is "sortsOfCell"
-		* its name in a properties dialog is "Initial quantity of sorts"
+	* initail quantity of cell's sorts with an unique gene (a zero-generation)
+		* its name in configuration file is "sortsOfCell"
+		* its name in properties dialog is "Initial quantity of sorts"
 
-	* an initial cell's energy (for zero-generation)
-		* its name in a configuration file is "cellEnergy"
-		* its name in a properties dialog is "Initial cell's energy"
+	* initial cell's energy (for zero-generation)
+		* its name in configuration file is "cellEnergy"
+		* its name in properties dialog is "Initial cell's energy"
 
-	* a maximal age of a cell
-		* its name in a configuration file is "maxAge"
-		* its name in a properties dialog is "Max cell's age"
+	* maximal age of cell
+		* its name in configuration file is "maxAge"
+		* its name in properties dialog is "Max cell's age"
 
-	* a maximal damage that a cell can inflict to another cell
-		* its name in a configuration file is "maxDamage"
-		* its name in a properties dialog is "Max damage"
+	* maximal damage that cell can inflict to another cell
+		* its name in configuration file is "maxDamage"
+		* its name in properties dialog is "Max damage"
 
-	* a minimal value for an energy for a division
-		* its name in a configuration file is "minEnergyForDivision"
-		* its name in a properties dialog is "Min energy for division"
+	* minimal value of energy for division
+		* its name in configuration file is "minEnergyForDivision"
+		* its name in properties dialog is "Min energy for division"
 
-	* a maximal value for an energy for a division
-		* its name in a configuration file is "maxEnergyForDivision"
-		* its name in a properties dialog is "Max energy for division"
+	* maximal value of energy for division
+		* its name in configuration file is "maxEnergyForDivision"
+		* its name in properties dialog is "Max energy for division"
 
-	* a maximal probability of a mutation during a division
-		* its name in a configuration file is "maxMutationProbability"
-		* its name in a properties dialog is ...
+	* maximal probability of mutation during division
+		* its name in configuration file is "maxMutationProbability"
+		* its name in properties dialog is ...
 
-	* an energy that a cell loses after one movement (turn, move forward)
-		* its name in a configuration file is "movementEnergy"
-		* its name in a properties dialog is ...
+	* energy that cell loses after one movement (turn, move forward)
+		* its name in configuration file is "movementEnergy"
+		* its name in properties dialog is ...
 
-	* a condition for make an attack
-		* its name in a configuration file is "attackCondition"
-		* its name in a properties dialog is ...
+	* condition for make an attack
+		* its name in configuration file is "attackCondition"
+		* its name in properties dialog is ...
 
 		! if a cell wants to make an attack another cell then a differense between attacker's energy
 		  and victim's energy must be no less this parameter 
@@ -125,23 +125,23 @@
 
 	The cell has all of parent's parameters and its own that described below:
 
-	* a quantity of an energy that necessary for a division (Energy for div)
-	* a mutation probability, it is a number between 0 and 100 (Mutation)
-	* a maximum damage that gets another cell during cell's attack (Damage)
-	* a behavoir gene
+	* quantity of an energy that necessary for a division (Energy for div)
+	* mutation probability, it is a number between 0 and 100 (Mutation)
+	* maximum damage that gets another cell during cell's attack (Damage)
+	* behavoir gene
 
 	The gene describes a cell's behavior. The behavior depends from an entity in front.
 	It can be:
 
-		* an empty field (Empty)
-		* a cell that has the same sort (Same)
-		* a cell that has a different sort (Other)
-		* a plant (Plant)
-		* a meat (Meat)
-		* a wall (Wall)
-		* a dead entity (Dead)
+		* empty field (Empty)
+		* cell that has the same sort (Same)
+		* cell that has a different sort (Other)
+		* plant (Plant)
+		* meat (Meat)
+		* wall (Wall)
+		* dead entity (Dead)
 
-		There is another one. It's "Weak". "Weak" means that a cell must attack another cell, but
+		Another one exists. It's "Weak". "Weak" means that a cell must attack another cell, but
 		it has a low energy. A difference between an attacker energy and a victim energy must be greater
 		or equal "attackCondition".
 
@@ -178,21 +178,21 @@
 		2.1) yes: make a division
 			
 			* A child cell inherits next parameters:
-				* a necessary energy for a division (Energy fir div)
-				* a damage that gets another cell during an attack (Damage)
-				* a probability of a mutation (Mutation)
-				* a color in case a mutation isn't happened
-				* a gene in case a mutation isn't happened
+				* necessary energy for division (Energy fir div)
+				* damage that gets another cell during an attack (Damage)
+				* probability of mutation (Mutation)
+				* color in case mutation isn't happened
+				* gene in case mutation isn't happened
 
 			* During a division a mutation can happen:
 				* it changes one action inside a gene. a new action will be seleced randomly
 				* also it changes a color of the cell
 
 			* The child cell generates next parameters randomly:
-				* a maximal age
-				* a direction of movement
-				* a color in case of a mutation
-				* a gene in case of a mutation
+				* maximal age
+				* direction of movement
+				* color in case of mutation
+				* gene in case of mutation
 
 			* A parental cell go forward
 
