@@ -16,6 +16,7 @@
 #include <fstream>
 #include <cassert>
 #include <algorithm>
+#include <chrono>
 
 namespace ProtoPuddle
 {
@@ -77,7 +78,8 @@ void World::StepEntities()
         }
     }
 
-    std::random_shuffle(entities, entities + count);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle(entities, entities + count, std::default_random_engine(seed));
 
     for (size_t i=0; i<count; i++)
     {
