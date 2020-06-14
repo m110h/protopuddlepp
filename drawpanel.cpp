@@ -1,12 +1,10 @@
 #include "drawpanel.h"
 
-/**/
-#include <wx/dcgraph.h>
-
 BasicDrawPanel::BasicDrawPanel(wxWindow* parent, wxWindowID id, const wxSize& size): wxPanel(parent, id, wxDefaultPosition, size /*, wxBORDER_SIMPLE*/ )
 {
     SetBackgroundColour(*wxWHITE);
 
+// direct2d will enable only for ms compiler, why?
 #if wxUSE_GRAPHICS_CONTEXT
 #ifdef __WXMSW__
 #if wxUSE_GRAPHICS_DIRECT2D

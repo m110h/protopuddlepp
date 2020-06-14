@@ -413,6 +413,7 @@ void MyFrame::Step()
     if (drawWorldFlag)
     {
         worldView->paintNow();
+
         /*
         if (world->GetSteps() % 10 == 0)
             worldView->paintNow();
@@ -632,7 +633,7 @@ void MyFrame::MakeLayout()
         selectedSizer->Add(new wxStaticText(selectedGroupBox, wxID_ANY, wxT("Kills")));
             killsText = new wxStaticText(selectedGroupBox, wxID_ANY, ProtoPuddle::unknownValueStr);
             selectedSizer->Add(killsText);
-        selectedSizer->Add(new wxStaticText(selectedGroupBox, wxID_ANY, wxT("Childrens")));
+        selectedSizer->Add(new wxStaticText(selectedGroupBox, wxID_ANY, wxT("Children")));
             childrensText = new wxStaticText(selectedGroupBox, wxID_ANY, ProtoPuddle::unknownValueStr);
             selectedSizer->Add(childrensText);
         selectedSizer->Add(new wxStaticText(selectedGroupBox, wxID_ANY, wxT("Eaten plants")));

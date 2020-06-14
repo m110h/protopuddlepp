@@ -8,7 +8,7 @@
 #endif
 
 #include <wx/dcbuffer.h>
-#include <wx/graphics.h>
+#include <wx/dcgraph.h>
 
 #include "entities.h"
 

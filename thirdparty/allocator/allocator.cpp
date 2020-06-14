@@ -1,5 +1,8 @@
 #include "allocator.h"
 
+namespace mtrebi
+{
+
 Allocator::Allocator(const std::size_t totalSize){
     m_totalSize = totalSize;
     m_used = 0;
@@ -20,4 +23,6 @@ std::size_t Allocator::GetPeak()
 std::size_t Allocator::GetTotal()
 {
     return m_totalSize;
+}
+
 }

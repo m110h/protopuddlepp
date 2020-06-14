@@ -3,6 +3,9 @@
 
 #include <cstddef> // size_t
 
+namespace mtrebi
+{
+
 class Allocator {
 public:
     Allocator(const std::size_t totalSize);
@@ -24,6 +27,8 @@ protected:
     std::size_t m_used;
     std::size_t m_peak;
 };
+
+}
 
 #endif /* ALLOCATOR_H */
 

@@ -9,21 +9,20 @@
 #include "entities.h"
 
 #include "thirdparty/allocator/freelistallocator.h"
-//#include "thirdparty/allocator/callocator.h"
 
 #include <array>
 #include <limits>
 #include <iomanip>
 #include <fstream>
-#include <exception>
 #include <cassert>
+#include <algorithm>
 
 namespace ProtoPuddle
 {
 
 Entity* entitiesTable[maxWorldWidth][maxWorldHeight] = {nullptr};
 
-FreeListAllocator _allocator(sizeof(Cell)*(maxWorldWidth*maxWorldHeight), FreeListAllocator::FIND_FIRST);
+mtrebi::FreeListAllocator _allocator(sizeof(Cell)*(maxWorldWidth*maxWorldHeight), mtrebi::FreeListAllocator::FIND_FIRST);
 
 World::World(GlobalProperties* _properties)
 {
@@ -77,6 +76,8 @@ void World::StepEntities()
             }
         }
     }
+
+    std::random_shuffle(entities, entities + count);
 
     for (size_t i=0; i<count; i++)
     {
@@ -611,28 +612,44 @@ void World::GenerateEntities(int type, int quantity)
             break;
 
         Entity* tmp = nullptr;
+
         switch (type)
         {
         case Entity::TYPE_PLANT:
             {
                 Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),8);
-                new(plt) Plant(this);
-                tmp = plt;
+                if (plt)
+                {
+                    new(plt) Plant(this);
+                    tmp = plt;
+                }
             }
             break;
         case Entity::TYPE_CELL:
             {
                 Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),8);
-                new(cl) Cell(this, wxString::Format(wxT("gene%d"), i+1));
-                tmp = cl;
+                if (cl)
+                {
+                    new(cl) Cell(this, wxString::Format(wxT("gene%d"), i+1));
+                    tmp = cl;
+                }
             }
             break;
         default:
             break;
         }
 
-        tmp->SetPosition(point);
-        AddEntity(tmp);
+        assert("Critacal error: can't allocate memory." && tmp);
+
+        if (tmp)
+        {
+            tmp->SetPosition(point);
+            AddEntity(tmp);
+        }
+        else
+        {
+            ReleasePoint(point);
+        }
     }
 }
 
@@ -730,19 +747,33 @@ void World::DeathHandle()
                     }
 
                     entitiesTable[p.x][p.y] = nullptr;
+                    e = nullptr;
+
+                    cellsCounter--;
 
                     {
                         Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),8);
-                        new(mt) Meat(this);
-                        e = mt;
+                        if (mt)
+                        {
+                            new(mt) Meat(this);
+                            e = mt;
+                        }
+                        else
+                        {
+                            assert("Critacal error: can't allocate memory." && 0);
+                        }
                     }
 
-                    e->SetPosition(p);
-
-                    entitiesTable[p.x][p.y] = e;
-
-                    cellsCounter--;
-                    meatCounter++;
+                    if (e)
+                    {
+                        e->SetPosition(p);
+                        entitiesTable[p.x][p.y] = e;
+                        meatCounter++;
+                    }
+                    else
+                    {
+                        ReleasePoint(p);
+                    }
                 }
             }
         }
@@ -1153,18 +1184,25 @@ void Cell::Clone()
     wxPoint oldPosition = position;
     wxPoint newPosition = position + direction;
 
+    Entity* child = nullptr;
+    {
+        Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),8);
+        if (cl)
+        {
+            new(cl) Cell(world, divEnergy, damage, mutationProbability, color, gen1);
+            child = cl;
+        }
+        else
+        {
+            assert("Critacal error: can't allocate memory." && 0);
+        }
+    }
+
     if (world->MoveEntity(this, newPosition))
     {
         if (world->LeaseEmptyPoint(oldPosition))
         {
             energy = (energy - world->GetProperties()->GetValue(wxString("movementEnergy"))) / 2;
-
-            Entity* child = nullptr;
-            {
-                Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),8);
-                new(cl) Cell(world, divEnergy, damage, mutationProbability, color, gen1);
-                child = cl;
-            }
 
             child->SetPosition(oldPosition);
             child->SetEnergy(energy);
@@ -1174,8 +1212,12 @@ void Cell::Clone()
         }
         else
         {
-            assert("Critical error: can't lease an empty point for a child!" && 0);
+            assert("Logical error: can't lease an empty point for a child." && 0);
         }
+    }
+    else
+    {
+        assert("Logical error: can't move a parent cell to new position." && 0);
     }
 }
 
