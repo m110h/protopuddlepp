@@ -399,7 +399,7 @@ void MyFrame::UpdateInformation()
 
 void MyFrame::UpdateMemoryInformation()
 {
-    auto [total, used, peak] = world->GetAllocationMemory();
+    auto [total, used, peak] = world->GetAllocatedMemoryInfo();
     SetStatusText(
         wxString::Format("%s%llu%s%llu%s%llu", " [Memory in Bytes] -> Total: ", total, " | Used: ", used, " | Peak: ", peak),
         2

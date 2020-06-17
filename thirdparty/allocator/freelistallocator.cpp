@@ -155,6 +155,9 @@ void FreeListAllocator::FindBest(const std::size_t size, const std::size_t align
 
             previousNode = itPrev;
             foundNode = it;
+
+            if (smallestDiff == 0)
+                return;
         }
 
         itPrev = it;

@@ -619,7 +619,8 @@ void World::GenerateEntities(int type, int quantity)
         {
         case Entity::TYPE_PLANT:
             {
-                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),8);
+                //Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),8);
+                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Cell),8);
                 if (plt)
                 {
                     new(plt) Plant(this);
@@ -754,7 +755,8 @@ void World::DeathHandle()
                     cellsCounter--;
 
                     {
-                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),8);
+                        //Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),8);
+                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Cell),8);
                         if (mt)
                         {
                             new(mt) Meat(this);
@@ -810,7 +812,7 @@ std::tuple<int, int, int> World::GetEntitiesQuantity()
     return { plantsCounter, meatCounter, cellsCounter };
 }
 
-std::tuple<std::size_t, std::size_t, std::size_t> World::GetAllocationMemory()
+std::tuple<std::size_t, std::size_t, std::size_t> World::GetAllocatedMemoryInfo()
 {
     return { _allocator.GetTotal(), _allocator.GetUsed(), _allocator.GetPeak() };
 }
