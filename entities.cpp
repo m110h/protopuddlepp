@@ -1290,7 +1290,7 @@ void Cell::Execute(int cmd)
 
         if (e && e->GetType() == TYPE_CELL)
         {
-            Cell* c = dynamic_cast<Cell*>(e);
+            Cell* c = static_cast<Cell*>(e);
 
             if (!Attack(c))
             {

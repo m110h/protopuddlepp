@@ -655,7 +655,7 @@ void MyFrame::MakeLayout()
 
         if (e && e->GetType() == ProtoPuddle::Entity::TYPE_CELL)
         {
-            ProtoPuddle::Cell* c = dynamic_cast<ProtoPuddle::Cell*>(e);
+            ProtoPuddle::Cell* c = static_cast<ProtoPuddle::Cell*>(e);
             GenesFrame* table = new GenesFrame(this, wxSize(500,400));
                 table->AddGene(c->GetGene());
             table->Show();
