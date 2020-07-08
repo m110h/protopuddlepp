@@ -34,4 +34,5 @@
 # Directories
 releases/
 build/
+build-codeblocks/
 tmp/
