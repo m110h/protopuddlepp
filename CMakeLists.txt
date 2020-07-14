@@ -29,24 +29,25 @@ else()
 endif()
 
 file(GLOB SOURCES_LIST "*.cpp" "*.h")
-file(GLOB SOURCES_LIST_THIRDPARTY "*.cpp" "*.h")
+file(GLOB SOURCES_LIST_THIRDPARTY "thirdparty/*.cpp" "thirdparty/*.h")
+file(GLOB SOURCES_LIST_THIRDPARTY_ALLOCATOR "thirdparty/allocator/*.cpp" "thirdparty/allocator/*.h")
 
-set(sources
-	main.cpp
-	entities.cpp
-	drawpanel.cpp
-	genesframe.cpp
-	propertiesdialog.cpp
-	thirdparty/allocator/allocator.cpp
-	thirdparty/allocator/callocator.cpp
-	thirdparty/allocator/freelistallocator.cpp
-	)
+#set(sources
+#	main.cpp
+#	entities.cpp
+#	drawpanel.cpp
+#	genesframe.cpp
+#	propertiesdialog.cpp
+#	thirdparty/allocator/allocator.cpp
+#	thirdparty/allocator/callocator.cpp
+#	thirdparty/allocator/freelistallocator.cpp
+#	)
 
-add_executable(${PROJECT} ${SOURCES_LIST})
+add_executable(${PROJECT} ${SOURCES_LIST} ${SOURCES_LIST_THIRDPARTY} ${SOURCES_LIST_THIRDPARTY_ALLOCATOR})
 
 if (WIN32)
 	# Define wxWidgets' root directory
-	# 	It must have a next structure of directories: bin, include, lib, lib/mswud
+	# 	It must have a next structure of directories: bin, include, lib, lib/mswud, lib/mswu
 	set(wxdir "d:/Development/Cpp/MyExamples/wx/wx/")
 	
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
