@@ -1,6 +1,8 @@
 #include "propertiesdialog.h"
 #include "properties_singleton.h"
 
+wxDECLARE_EVENT(PROPERTIES_DIALOG_OK_EVENT, wxCommandEvent);
+
 PrefsPageGeneralPanel::PrefsPageGeneralPanel(wxWindow *parent) : wxPanel(parent)
 {
     sortsOfCellCtrl = new wxSpinCtrl(this, wxID_ANY);
@@ -106,11 +108,24 @@ bool PrefsPageGeneralPanel::TransferDataToWindow()
     return true;
 }
 
+void PrefsPageGeneralPanel::NotifyMainFrame()
+{
+    wxCommandEvent event(PROPERTIES_DIALOG_OK_EVENT);
+
+    event.SetEventObject(this);
+    //event.SetString("Some String Data");
+
+    // MyFrame <- wxPreferencesEditor <- PrefsPageGeneral:wxPanel (we are here)
+    wxPostEvent(GetParent()->GetParent()->GetParent(), event);
+}
+
 // Called on platforms with modal preferences dialog to save and apply
 // the changes.
 bool PrefsPageGeneralPanel::TransferDataFromWindow()
 {
     PropertiesSingleton::getInstance().UpdateProperties(properties);
+
+    NotifyMainFrame();
 
     if (showAdvice)
     {
@@ -123,20 +138,18 @@ bool PrefsPageGeneralPanel::TransferDataFromWindow()
 
 void PrefsPageGeneralPanel::UpdateSettingsIfNecessary()
 {
-    return;
-
     // On some platforms (OS X, GNOME), changes to preferences are applied
     // immediately rather than after the OK or Apply button is pressed, so
     // we need to take them into account as soon as they happen. On others
     // (MSW), we need to wait until the changes are accepted by the user by
     // pressing the "OK" button. To reuse the same code for both cases, we
-    // always update m_settingsCurrent object under all platforms, but only
+    // always update properties object under all platforms, but only
     // update the real application settings if necessary here.
-    //if ( wxPreferencesEditor::ShouldApplyChangesImmediately() )
-    //{
-        //wxGetApp().UpdateProperties(properties);
-        //wxMessageBox(wxT("UpdateSettingsIfNecessary"), wxT("Hook"), wxOK | wxICON_INFORMATION, this);
-    //}
+    if ( wxPreferencesEditor::ShouldApplyChangesImmediately() )
+    {
+        PropertiesSingleton::getInstance().UpdateProperties(properties);
+        NotifyMainFrame();
+    }
 }
 
 void PrefsPageGeneralPanel::ChangedSortsOfCell(wxSpinEvent& e) {

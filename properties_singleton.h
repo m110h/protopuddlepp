@@ -7,10 +7,7 @@ class PropertiesSingleton
 {
 public:
     PropertiesSingleton(const PropertiesSingleton& src) = delete;
-
-    ~PropertiesSingleton() {
-        std::cout << "~Singleton()" << std::endl;
-    }
+    ~PropertiesSingleton() {}
 
     const ProtoPuddle::GlobalProperties& GetProperties() const
     {
@@ -25,17 +22,6 @@ public:
     void UpdateProperties(const ProtoPuddle::GlobalProperties& _properties)
     {
         properties = _properties;
-        updated = true;
-    }
-
-    bool IsPropertiesUpdated()
-    {
-        return updated;
-    }
-
-    void ResetUpdateFlag()
-    {
-        updated = false;
     }
 
     static PropertiesSingleton& getInstance() {
@@ -48,8 +34,6 @@ private:
 
 private:
     ProtoPuddle::GlobalProperties properties;
-
-    bool updated {false};
 };
 
 

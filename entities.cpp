@@ -9,6 +9,7 @@
 #include "entities.h"
 
 #include "thirdparty/allocator/freelistallocator.h"
+//#include "thirdparty/allocator/callocator.h"
 
 #include <array>
 #include <limits>
@@ -24,6 +25,8 @@ namespace ProtoPuddle
 Entity* entitiesTable[maxWorldWidth][maxWorldHeight] = {nullptr};
 
 mtrebi::FreeListAllocator _allocator(sizeof(Cell)*(maxWorldWidth*maxWorldHeight), mtrebi::FreeListAllocator::FIND_FIRST);
+
+//mtrebi::CAllocator _allocator;
 
 World::World(GlobalProperties* _properties)
 {
@@ -78,7 +81,7 @@ void World::StepEntities()
         }
     }
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    static unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::shuffle(entities, entities + count, std::default_random_engine(seed));
 
     for (size_t i=0; i<count; i++)
@@ -502,21 +505,16 @@ bool World::SaveToFile(const wxString& filename)
 
 void World::DrawBoard(wxDC* dc)
 {
-    wxBrush brush;
-    wxPen pen;
-
-    brush.SetStyle(wxBRUSHSTYLE_TRANSPARENT);
-
-    pen.SetColour(wxColor(0,0,0));
-    pen.SetWidth(1);
-
-    dc->SetBrush(brush);
-    dc->SetPen(pen);
-
     wxRect bbb = GetBoardBoundingBox();
     wxSize field = GetFieldSize(bbb);
 
+    // draw border
+    dc->SetPen( wxPen( wxColor(0,0,0), 2 ) );
+    dc->DrawRectangle( bbb );
+
     // draw vertical lines
+    dc->SetPen( wxPen( wxColor(0,0,0), 1 ) );
+
     for (int i=bbb.GetX()+field.GetWidth(); i<(bbb.GetX()+bbb.GetWidth()); i+=field.GetWidth())
     {
         dc->DrawLine( i, bbb.GetY(), i, bbb.GetY()+bbb.GetHeight() );
@@ -527,10 +525,6 @@ void World::DrawBoard(wxDC* dc)
     {
         dc->DrawLine( bbb.GetX(), i, bbb.GetX()+bbb.GetWidth(), i );
     }
-
-    // draw border
-    dc->SetPen( wxPen( wxColor(0,0,0), 2 ) );
-    dc->DrawRectangle( bbb );
 }
 
 void World::DrawEntities(wxDC* dc)
@@ -577,8 +571,12 @@ bool World::LeaseEmptyPoint(const wxPoint& point)
         *it = std::move(emptyPoints.back());
         emptyPoints.pop_back();
 
+        //wxLogMessage(wxString::Format(wxT("Point (%i,%i) has been leased."), point.x, point.y));
+
         return true;
     }
+
+    //wxLogMessage(wxString::Format(wxT("Try to lease point (%d,%d), but fail."), point.x, point.y));
 
     return false;
 }
@@ -595,6 +593,12 @@ wxPoint World::LeaseRandomEmptyPoint()
         emptyPoints[index] = std::move(emptyPoints.back());
         emptyPoints.pop_back();
     }
+    else
+    {
+        //wxLogMessage(wxString::Format(wxT("The world hasn't empty points.")));
+    }
+
+    //wxLogMessage(wxString::Format(wxT("Lease random point (%d,%d)."), point.x, point.y));
 
     return point;
 }
@@ -602,6 +606,8 @@ wxPoint World::LeaseRandomEmptyPoint()
 void World::ReleasePoint(const wxPoint& point)
 {
     emptyPoints.push_back(point);
+
+    //wxLogMessage(wxString::Format(wxT("Release point (%d,%d)."), point.x, point.y));
 }
 
 void World::GenerateEntities(int type, int quantity)
@@ -619,8 +625,7 @@ void World::GenerateEntities(int type, int quantity)
         {
         case Entity::TYPE_PLANT:
             {
-                //Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),8);
-                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Cell),8);
+                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),8);
                 if (plt)
                 {
                     new(plt) Plant(this);
@@ -755,8 +760,7 @@ void World::DeathHandle()
                     cellsCounter--;
 
                     {
-                        //Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),8);
-                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Cell),8);
+                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),8);
                         if (mt)
                         {
                             new(mt) Meat(this);
@@ -812,7 +816,7 @@ std::tuple<int, int, int> World::GetEntitiesQuantity()
     return { plantsCounter, meatCounter, cellsCounter };
 }
 
-std::tuple<std::size_t, std::size_t, std::size_t> World::GetAllocatedMemoryInfo()
+std::tuple<std::size_t, std::size_t, std::size_t> World::GetAllocationMemory()
 {
     return { _allocator.GetTotal(), _allocator.GetUsed(), _allocator.GetPeak() };
 }
@@ -1290,7 +1294,7 @@ void Cell::Execute(int cmd)
 
         if (e && e->GetType() == TYPE_CELL)
         {
-            Cell* c = static_cast<Cell*>(e);
+            Cell* c = dynamic_cast<Cell*>(e);
 
             if (!Attack(c))
             {
@@ -1447,3 +1451,4 @@ wxString Cell::Get(const wxString& name)
 }
 
 }
+

@@ -1,4 +1,4 @@
-#include "wx/wxprec.h"
+#include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
@@ -16,6 +16,8 @@
 
 #include "properties_singleton.h"
 
+#define PROTOPUDDLEPP_VERSION "0.6.0"
+
 class MyFrame: public wxFrame
 {
 public:
@@ -30,19 +32,21 @@ public:
     void OnStep(wxCommandEvent& event);
     void OnSwitchDrawWorld(wxCommandEvent& event);
     void OnSwitchAntialiasing(wxCommandEvent& event);
-    void OnShowLog(wxCommandEvent& event);
     void OnProperties(wxCommandEvent& event);
     void OnDescription(wxCommandEvent& event);
+    void OnLogWindow(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
     enum {
         myID_MENU_EDIT_SIMULATION,
         myID_MENU_EDIT_STEP,
         myID_MENU_EDIT_DRAW_WORLD,
+#ifdef __WXMSW__
         myID_MENU_EDIT_ANTIALIASING,
-        myID_MENU_EDIT_SHOW_LOG,
+#endif
         myID_MENU_EDIT_PROPERTIES,
-        myID_MENU_HELP_SHOW_DESCRIPTION
+        myID_MENU_HELP_SHOW_DESCRIPTION,
+        myID_MENU_HELP_SHOW_LOG
     };
 
     bool IsSimulationRunning();
@@ -53,6 +57,8 @@ public:
 
 private:
     wxTimer timer;
+
+    wxLogWindow* logWindow {nullptr};
 
     wxSpinCtrl* spsSpinCtrl {nullptr};
     wxSpinCtrl* ppsSpinCtrl {nullptr};
@@ -104,11 +110,20 @@ private:
     void Setting();
     void ShowPropertiesEditor(wxWindow* parent);
 
-    //void DismissPropertiesEditor();
+	// todo:
+    void DismissPropertiesEditor();
 };
+
+wxDECLARE_EVENT(PROPERTIES_DIALOG_OK_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(PROPERTIES_DIALOG_OK_EVENT, wxCommandEvent);
 
 MyFrame::MyFrame(): wxFrame(nullptr, wxID_ANY, wxT("ProtoPuddle++"), wxDefaultPosition, wxSize(800,600))
 {
+    logWindow = new wxLogWindow(NULL, "ProtoPuddle++ Log", false, false);
+    wxLog::SetActiveTarget(logWindow);
+
+    wxLogMessage("Log initialization is done.");
+
     MakeMenu();
     MakeStatusBar();
     Setting();
@@ -121,10 +136,24 @@ MyFrame::MyFrame(): wxFrame(nullptr, wxID_ANY, wxT("ProtoPuddle++"), wxDefaultPo
         worldView->SetWorld(world);
 
     UpdateInformation();
+    UpdateMemoryInformation();
 
     // handle left click on draw panel
     this->Bind(wxEVT_LEFT_UP, [&](wxMouseEvent& event) {
         UpdateInformation();
+    });
+
+    // handle update properties command from properties dialog
+    this->Bind(PROPERTIES_DIALOG_OK_EVENT, [&](wxCommandEvent& event) {
+        bool flag = IsSimulationRunning();
+
+        if (flag)
+            StopSimulation();
+
+        UpdateQuickSettings();
+
+        if (flag)
+            StartSimulation();
     });
 
     // handle timer event
@@ -144,7 +173,9 @@ void MyFrame::NewWorld()
         timer.Stop();
 
     world->New();
-    worldView->paintNow();
+
+    if (worldView)
+    	worldView->paintNow();
 
     UpdateInformation();
     UpdateMemoryInformation();
@@ -201,6 +232,9 @@ void MyFrame::OnSave(wxCommandEvent& WXUNUSED(event))
 
 void MyFrame::OnQuit(wxCommandEvent& event)
 {
+    StopSimulation();
+    DismissPropertiesEditor();
+
     Close(true);
 }
 
@@ -215,12 +249,6 @@ void MyFrame::OnStep(wxCommandEvent& event)
         Step();
 }
 
-void MyFrame::OnShowLog(wxCommandEvent& event)
-{
-    wxMessageBox(wxT("This will be realesed in the future"), wxT("Log"), wxOK | wxICON_INFORMATION, this);
-    SetStatusText(wxT("Action 'Show log' has been performed"), 1);
-}
-
 void MyFrame::OnProperties(wxCommandEvent& event)
 {
     ShowPropertiesEditor(this);
@@ -232,32 +260,52 @@ void MyFrame::OnSwitchDrawWorld(wxCommandEvent& event)
 
     if (drawWorldFlag)
     {
-        worldView->paintNow();
+    	if (worldView)
+    		worldView->paintNow();
 
         SetStatusText(wxT("Drawing is enabled"), 1);
+        wxLogMessage(wxT("Drawing was enabled."));
     }
     else
     {
         SetStatusText(wxT("Drawing is disabled"), 1);
+        wxLogMessage(wxT("Drawing was disabled."));
     }
 }
 
 void MyFrame::OnSwitchAntialiasing(wxCommandEvent& event)
 {
-    if (worldView->SwitchAntialiasingMode())
+    if (worldView && worldView->SwitchAntialiasingMode())
     {
         SetStatusText(wxT("Antialiasing is enabled"), 1);
+        wxLogMessage(wxT("Antialiasing was enabled."));
     }
     else
     {
         SetStatusText(wxT("Antialiasing is disabled"), 1);
+        wxLogMessage(wxT("Antialiasing was disabled."));
     }
 }
 
 void MyFrame::OnDescription(wxCommandEvent& event)
 {
     wxMessageBox(wxT("This will be released in the future"), wxT("Description"), wxOK | wxICON_INFORMATION, this);
-    SetStatusText(wxT("Action 'Description' has been performed"), 1);
+    wxLogMessage(wxT("Action 'Description' has been performed"));
+}
+
+void MyFrame::OnLogWindow(wxCommandEvent& event)
+{
+    if ( logWindow->GetFrame()->IsIconized() )
+    {
+        logWindow->GetFrame()->Restore();
+    }
+
+    if ( ! logWindow->GetFrame()->IsShown() )
+    {
+        logWindow->Show();
+    }
+
+    logWindow->GetFrame()->SetFocus();
 }
 
 void MyFrame::OnAbout(wxCommandEvent& event)
@@ -267,7 +315,7 @@ void MyFrame::OnAbout(wxCommandEvent& event)
     info.SetIcon(wxIcon("resources/cell_icon_64x64.png", wxBITMAP_TYPE_PNG));
 
     info.SetName(wxT("ProtoPuddle++"));
-    info.SetVersion(wxT("0.6.0"));
+    info.SetVersion(wxT(PROTOPUDDLEPP_VERSION));
     info.SetDescription(wxT(" A remake of the protopuddle cell's world simulator "));
     info.SetWebSite(wxT("https://github.com/m110h/protopuddlepp"));
 
@@ -317,6 +365,8 @@ void MyFrame::RestartSimulation()
     {
         StopSimulation();
         StartSimulation();
+
+        wxLogMessage(wxT("Simulation was restarted."));
     }
 }
 
@@ -325,9 +375,11 @@ void MyFrame::SwitchSimulation()
     if (timer.IsRunning())
     {
         StopSimulation();
+        wxLogMessage(wxT("Simulation was stopped."));
     }
     else {
         StartSimulation();
+        wxLogMessage(wxT("Simulation was started."));
     }
 }
 
@@ -340,6 +392,8 @@ void MyFrame::UpdateQuickSettings()
     peSpinCtrl->SetValue(properties->GetValue(wxString("plantEnergy")));
     meSpinCtrl->SetValue(properties->GetValue(wxString("meatEnergy")));
     mdSpinCtrl->SetValue(properties->GetValue(wxString("maxDamage")));
+
+    wxLogMessage(wxT("Quick settings was updated."));
 }
 
 void MyFrame::UpdateInformation()
@@ -395,22 +449,37 @@ void MyFrame::UpdateInformation()
 
         showGenesBtn->Disable();
     }
+
+    wxLogMessage(wxT("Infromation was updated."));
 }
 
 void MyFrame::UpdateMemoryInformation()
 {
-    auto [total, used, peak] = world->GetAllocatedMemoryInfo();
+    auto [total, used, peak] = world->GetAllocationMemory();
     SetStatusText(
         wxString::Format("%s%llu%s%llu%s%llu", " [Memory in Bytes] -> Total: ", total, " | Used: ", used, " | Peak: ", peak),
         2
     );
+
+    wxLogMessage(wxT("Memory infromation was updated."));
 }
+
+static bool isStep {false};
 
 void MyFrame::Step()
 {
+    if (isStep)
+    {
+        wxLogMessage(wxT("Try to call Step during another Step is working. return."));
+        return;
+    }
+
+
+    isStep = true;
+
     world->Step();
 
-    if (drawWorldFlag)
+    if (drawWorldFlag && worldView)
     {
         worldView->paintNow();
 
@@ -424,11 +493,18 @@ void MyFrame::Step()
     UpdateMemoryInformation();
 
     SetStatusText(wxString::Format("%s%d", "Steps: ", world->GetSteps()), 0);
+
+    isStep = false;
 }
 
 void MyFrame::ApplySettings(wxCommandEvent& event)
 {
     ProtoPuddle::GlobalProperties properties = PropertiesSingleton::getInstance().GetProperties();
+
+    bool flag = IsSimulationRunning();
+
+    if (flag)
+        StopSimulation();
 
     properties.SetValue(wxString("stepsPerSecond"), spsSpinCtrl->GetValue());
     properties.SetValue(wxString("plantsPerStep"), ppsSpinCtrl->GetValue());
@@ -438,9 +514,11 @@ void MyFrame::ApplySettings(wxCommandEvent& event)
 
     PropertiesSingleton::getInstance().UpdateProperties(properties);
 
-    RestartSimulation();
+    if (flag)
+        StartSimulation();
 
     SetStatusText(wxT("Settings have been applied"), 1);
+    wxLogMessage(wxT("Settings have been applied."));
 }
 
 void MyFrame::MakeMenu()
@@ -460,13 +538,15 @@ void MyFrame::MakeMenu()
     menuEdit->Append(myID_MENU_EDIT_SIMULATION, wxT("&Start/Stop Simulation\tCtrl+r"));
     menuEdit->Append(myID_MENU_EDIT_STEP, wxT("&One Step\tCtrl+x"));
     menuEdit->AppendCheckItem(myID_MENU_EDIT_DRAW_WORLD, wxT("Enable &Drawing\tCtrl+d"));
+#ifdef __WXMSW__
     menuEdit->AppendCheckItem(myID_MENU_EDIT_ANTIALIASING, wxT("Enable &Antialiasing\tCtrl+a"));
-    //menuEdit->Append(myID_MENU_EDIT_SHOW_LOG, wxT("Show &Log\tCtrl+l"));
+#endif
     menuEdit->Append(myID_MENU_EDIT_PROPERTIES, wxT("&Properties\tCtrl+p"));
 
     wxMenu* menuHelp = new wxMenu;
 
-    menuHelp->Append(myID_MENU_HELP_SHOW_DESCRIPTION, wxT("&Description\tCtrl+d"));
+    menuHelp->Append(myID_MENU_HELP_SHOW_DESCRIPTION, wxT("&Description"));
+    menuHelp->Append(myID_MENU_HELP_SHOW_LOG, wxT("Show &Log\tCtrl+l"));
     menuHelp->Append(wxID_ABOUT, wxT("&About"));
 
     menuBar->Append(menuFile, wxT("&File"));
@@ -474,7 +554,10 @@ void MyFrame::MakeMenu()
     menuBar->Append(menuHelp, wxT("&Help"));
 
     menuBar->Check(myID_MENU_EDIT_DRAW_WORLD, true);
+
+#ifdef __WXMSW__
     menuBar->Check(myID_MENU_EDIT_ANTIALIASING, true);
+#endif
 
     this->SetMenuBar(menuBar);
 
@@ -502,9 +585,11 @@ void MyFrame::MakeMenu()
         case myID_MENU_EDIT_DRAW_WORLD:
             OnSwitchDrawWorld(event);
             break;
+#ifdef __WXMSW__
         case myID_MENU_EDIT_ANTIALIASING:
             OnSwitchAntialiasing(event);
             break;
+#endif
         //case myID_MENU_EDIT_SHOW_LOG:
         //    OnShowLog(event);
         //    break;
@@ -514,6 +599,9 @@ void MyFrame::MakeMenu()
         case myID_MENU_HELP_SHOW_DESCRIPTION:
             OnDescription(event);
             break;
+        case myID_MENU_HELP_SHOW_LOG:
+            OnLogWindow(event);
+            break;
         case wxID_ABOUT:
             OnAbout(event);
             break;
@@ -522,6 +610,8 @@ void MyFrame::MakeMenu()
             break;
         }
     });
+
+    wxLogMessage(wxT("Menu was created."));
 }
 
 void MyFrame::MakeStatusBar()
@@ -532,6 +622,8 @@ void MyFrame::MakeStatusBar()
     SetStatusText(wxT("No actions performed"), 1);
 
     UpdateMemoryInformation();
+
+    wxLogMessage(wxT("Status bar was created."));
 }
 
 void MyFrame::MakeLayout()
@@ -655,7 +747,7 @@ void MyFrame::MakeLayout()
 
         if (e && e->GetType() == ProtoPuddle::Entity::TYPE_CELL)
         {
-            ProtoPuddle::Cell* c = static_cast<ProtoPuddle::Cell*>(e);
+            ProtoPuddle::Cell* c = dynamic_cast<ProtoPuddle::Cell*>(e);
             GenesFrame* table = new GenesFrame(this, wxSize(500,400));
                 table->AddGene(c->GetGene());
             table->Show();
@@ -673,11 +765,15 @@ void MyFrame::MakeLayout()
 
     topSizer->Add(new wxStaticLine(this, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL), 0, wxGROW);
 
-    worldView = new BasicDrawPanel(this, wxID_ANY, wxSize(500, 500));
+    worldView = new BasicDrawPanel(this, wxID_ANY, wxDefaultSize);
     topSizer->Add(worldView, 2, wxEXPAND, 0);
 
     this->SetSizer(topSizer);
     this->SetAutoLayout(true);
+
+    worldView->SetFocus();
+
+    wxLogMessage(wxT("Layout was created."));
 }
 
 void MyFrame::Setting()
@@ -691,19 +787,16 @@ void MyFrame::ShowPropertiesEditor(wxWindow* parent)
     {
         propertiesEditor.reset(new wxPreferencesEditor(wxT("Properties")));
         propertiesEditor->AddPage(new PrefsPageGeneral);
+
+        wxLogMessage(wxT("Properties dialog was created."));
     }
 
     propertiesEditor->Show(parent);
 
-    if (PropertiesSingleton::getInstance().IsPropertiesUpdated())
-    {
-        UpdateQuickSettings();
-        PropertiesSingleton::getInstance().ResetUpdateFlag();
-        RestartSimulation();
-    }
+    wxLogMessage(wxT("Properties dialog was shown."));
 }
 
-/*
+
 void MyFrame::DismissPropertiesEditor()
 {
     if ( propertiesEditor )
@@ -711,7 +804,6 @@ void MyFrame::DismissPropertiesEditor()
         propertiesEditor->Dismiss();
     }
 }
-*/
 
 
 class MyApp: public wxApp
@@ -738,3 +830,4 @@ private:
 };
 
 IMPLEMENT_APP(MyApp)
+

@@ -22,6 +22,7 @@ public:
 
 private:
     void UpdateSettingsIfNecessary();
+    void NotifyMainFrame();
 
     void ChangedSortsOfCell(wxSpinEvent& e);
     void ChangedCellEnergy(wxSpinEvent& e);

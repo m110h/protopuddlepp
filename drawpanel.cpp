@@ -3,7 +3,8 @@
 BasicDrawPanel::BasicDrawPanel(wxWindow* parent, wxWindowID id, const wxSize& size): wxPanel(parent, id, wxDefaultPosition, size /*, wxBORDER_SIMPLE*/ )
 {
     SetBackgroundColour(*wxWHITE);
-
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+/*
 // direct2d will enable only for ms compiler, why?
 #if wxUSE_GRAPHICS_CONTEXT
 #ifdef __WXMSW__
@@ -16,7 +17,7 @@ BasicDrawPanel::BasicDrawPanel(wxWindow* parent, wxWindowID id, const wxSize& si
 #endif
 #endif // __WXMSW__
 #endif // wxUSE_GRAPHICS_CONTEXT
-
+*/
     this->Bind(wxEVT_SIZE, [&](wxSizeEvent& event){
         onSize(event);
     });
@@ -36,12 +37,17 @@ void BasicDrawPanel::onSize(wxSizeEvent& event)
     if (world)
         world->SetPanelSize(event.GetSize());
 
+#ifdef __WXMSW__
     paintNow();
+#endif
+
 }
 
 void BasicDrawPanel::mouseReleased(wxMouseEvent& event)
 {
-    world->SelectEntityByPosition(world->PanelToWorld(event.GetPosition()));
+	if (world)
+    	world->SelectEntityByPosition(world->PanelToWorld(event.GetPosition()));
+    
     paintNow();
 
     wxPostEvent(GetParent(), event);
@@ -55,11 +61,13 @@ void BasicDrawPanel::paintNow()
     wxClientDC dc(this);
     wxBufferedDC bdc(&dc, dc.GetSize()); // for prevent flickering
     softwareRender(&bdc);
+    //softwareRender(&dc);
 }
 
 void BasicDrawPanel::onPaint(wxPaintEvent & evt)
 {
-    wxBufferedPaintDC dc(this);
+    wxAutoBufferedPaintDC dc(this);
+    //wxPaintDC dc(this);
     softwareRender(&dc);
 }
 
@@ -75,6 +83,14 @@ bool BasicDrawPanel::SwitchAntialiasingMode()
 
 void BasicDrawPanel::softwareRender(wxDC* dc)
 {
+	if (dc)
+	{
+		dc->Clear();
+
+		if (world)
+		    world->Draw(dc);
+	}
+/*
     if (renderer)
     {
         wxGraphicsContext* context {nullptr};
@@ -116,4 +132,6 @@ void BasicDrawPanel::softwareRender(wxDC* dc)
         if (world)
             world->Draw(dc);
     }
+*/
 }
+
