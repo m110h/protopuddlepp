@@ -28,6 +28,9 @@ else()
 	find_package(wxWidgets COMPONENTS core base REQUIRED)
 endif()
 
+file(GLOB SOURCES_LIST "*.cpp" "*.h")
+file(GLOB SOURCES_LIST_THIRDPARTY "*.cpp" "*.h")
+
 set(sources
 	main.cpp
 	entities.cpp
@@ -39,7 +42,7 @@ set(sources
 	thirdparty/allocator/freelistallocator.cpp
 	)
 
-add_executable(${PROJECT} ${sources})
+add_executable(${PROJECT} ${SOURCES_LIST})
 
 if (WIN32)
 	# Define wxWidgets' root directory
