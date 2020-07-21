@@ -20,7 +20,7 @@ $ sudo pacman -S gdb
 $ sudo pacman -S git
 $ sudo pacman -S cmake
 ```
-Next download an archive with wxWidgets 3.1.3 source code:
+Next, download an archive with wxWidgets 3.1.3 source code:
 
 1) unpack the archive (tar xvjf *.tar,bz2)
 2) cd {directory with a source code}
@@ -28,7 +28,7 @@ Next download an archive with wxWidgets 3.1.3 source code:
 
 Also you can try to install wxWidgets from a repository.
 
-And final build the project:
+And final, build the project:
 ```
 $ cd {some directory}
 $ git clone https://github.com/m110h/protopuddlepp.git
