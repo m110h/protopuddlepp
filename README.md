@@ -12,7 +12,7 @@ Use cmake for building. At now, Windows and Linux had been tested.
 
 ### Linux (manjaro for example)
 
-At first you have to install a development environment:
+At first, you have to install a development environment:
 ```
 $ sudo pacman -S gcc
 $ sudo pacman -S make
