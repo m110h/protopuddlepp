@@ -20,6 +20,8 @@ FreeListAllocator::FreeListAllocator(const std::size_t totalSize, const Placemen
 
 void FreeListAllocator::Init()
 {
+    //std::lock_guard<std::mutex> guard(_mutex);
+
     if (m_start_ptr != nullptr) {
         free(m_start_ptr);
         m_start_ptr = nullptr;
@@ -38,6 +40,8 @@ FreeListAllocator::~FreeListAllocator()
 
 void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alignment)
 {
+    std::lock_guard<std::mutex> guard(_mutex);
+
     const std::size_t allocationHeaderSize = sizeof(FreeListAllocator::AllocationHeader);
 
     assert("Allocation size must be bigger" && size >= sizeof(Node));
@@ -167,6 +171,8 @@ void FreeListAllocator::FindBest(const std::size_t size, const std::size_t align
 
 void FreeListAllocator::Free(void* ptr)
 {
+    std::lock_guard<std::mutex> guard(_mutex);
+
     // Insert it in a sorted position by the address number
     const std::size_t currentAddress = (std::size_t) ptr;
     const std::size_t headerAddress = currentAddress - sizeof (FreeListAllocator::AllocationHeader);
@@ -224,6 +230,8 @@ void FreeListAllocator::Merge(Node* previousNode, Node * freeNode)
 
 void FreeListAllocator::Reset()
 {
+    std::lock_guard<std::mutex> guard(_mutex);
+
     m_used = 0;
     m_peak = 0;
 

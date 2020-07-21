@@ -450,7 +450,7 @@ void MyFrame::UpdateInformation()
         showGenesBtn->Disable();
     }
 
-    wxLogMessage(wxT("Infromation was updated."));
+    //wxLogMessage(wxT("Infromation was updated."));
 }
 
 void MyFrame::UpdateMemoryInformation()
@@ -461,7 +461,7 @@ void MyFrame::UpdateMemoryInformation()
         2
     );
 
-    wxLogMessage(wxT("Memory infromation was updated."));
+    //wxLogMessage(wxT("Memory infromation was updated."));
 }
 
 static bool isStep {false};

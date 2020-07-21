@@ -32,7 +32,7 @@ file(GLOB SOURCES_LIST "*.cpp" "*.h")
 file(GLOB SOURCES_LIST_THIRDPARTY "thirdparty/*.cpp" "thirdparty/*.h")
 file(GLOB SOURCES_LIST_THIRDPARTY_ALLOCATOR "thirdparty/allocator/*.cpp" "thirdparty/allocator/*.h")
 
-#set(sources
+#set(SOURCES_LIST
 #	main.cpp
 #	entities.cpp
 #	drawpanel.cpp
