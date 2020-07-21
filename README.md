@@ -39,7 +39,7 @@ $ cmake ..
 $ make
 ```
 ## Binary
-Binary releases for Windows 64 bit are available. [Download releases](https://github.com/m110h/protopuddlepp/releases).
+Binary releases for Windows 64 bit are available. Use this [link](https://github.com/m110h/protopuddlepp/releases).
 
 ## Screenshot
 ![Image description](screenshots/main_window.jpg)
