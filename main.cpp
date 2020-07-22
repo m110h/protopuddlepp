@@ -455,13 +455,11 @@ void MyFrame::UpdateInformation()
 
 void MyFrame::UpdateMemoryInformation()
 {
-    auto [total, used, peak] = world->GetAllocationMemory();
-    SetStatusText(
-        wxString::Format("%s%llu%s%llu%s%llu", " [Memory in Bytes] -> Total: ", total, " | Used: ", used, " | Peak: ", peak),
-        2
-    );
+    auto [total, used, peak] = world->GetMemoryInfo();
+    wxString mi = wxString::Format("%s%llu%s%llu%s%llu", " [Memory in Bytes] -> Total: ", total, " | Used: ", used, " | Peak: ", peak);
+    SetStatusText(mi, 2);
 
-    //wxLogMessage(wxT("Memory infromation was updated."));
+    wxLogMessage(mi);
 }
 
 static bool isStep {false};

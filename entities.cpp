@@ -816,7 +816,7 @@ std::tuple<int, int, int> World::GetEntitiesQuantity()
     return { plantsCounter, meatCounter, cellsCounter };
 }
 
-std::tuple<std::size_t, std::size_t, std::size_t> World::GetAllocationMemory()
+std::tuple<std::size_t, std::size_t, std::size_t> World::GetMemoryInfo()
 {
     return { _allocator.GetTotal(), _allocator.GetUsed(), _allocator.GetPeak() };
 }

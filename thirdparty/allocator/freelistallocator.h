@@ -1,8 +1,6 @@
 #ifndef FREELISTALLOCATOR_H
 #define FREELISTALLOCATOR_H
 
-#include <mutex>
-
 #include "allocator.h"
 #include "singlylinkedlist.h"
 
@@ -32,8 +30,6 @@ private:
     PlacementPolicy m_pPolicy;
 
     SinglyLinkedList<FreeHeader> m_freeList;
-
-    std::mutex _mutex;
 
 public:
     FreeListAllocator(const std::size_t totalSize, const PlacementPolicy pPolicy);

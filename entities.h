@@ -45,7 +45,7 @@ public:
     std::tuple<int, int, int> GetEntitiesQuantity();
 
     // returns total, used, peak
-    std::tuple<std::size_t, std::size_t, std::size_t> GetAllocationMemory();
+    std::tuple<std::size_t, std::size_t, std::size_t> GetMemoryInfo();
 
     bool IsInside(const wxPoint& worldPosition);
 
