@@ -47,7 +47,7 @@ void BasicDrawPanel::mouseReleased(wxMouseEvent& event)
 {
 	if (world)
     	world->SelectEntityByPosition(world->PanelToWorld(event.GetPosition()));
-    
+
     paintNow();
 
     wxPostEvent(GetParent(), event);

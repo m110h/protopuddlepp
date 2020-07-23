@@ -11,6 +11,8 @@ const wxString unknownValueStr = wxT("---");
 const int maxWorldWidth = 100;
 const int maxWorldHeight = 100;
 
+const std::size_t alignment = 8;
+
 }
 
 #endif

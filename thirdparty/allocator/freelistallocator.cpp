@@ -20,8 +20,6 @@ FreeListAllocator::FreeListAllocator(const std::size_t totalSize, const Placemen
 
 void FreeListAllocator::Init()
 {
-    //std::lock_guard<std::mutex> guard(_mutex);
-
     if (m_start_ptr != nullptr) {
         free(m_start_ptr);
         m_start_ptr = nullptr;
@@ -40,8 +38,6 @@ FreeListAllocator::~FreeListAllocator()
 
 void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alignment)
 {
-    std::lock_guard<std::mutex> guard(_mutex);
-
     const std::size_t allocationHeaderSize = sizeof(FreeListAllocator::AllocationHeader);
 
     assert("Allocation size must be bigger" && size >= sizeof(Node));
@@ -66,17 +62,20 @@ void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alig
 
 
     // calculating the size we will take
+    assert("Allocation: padding < allocationHeaderSize" && padding >= allocationHeaderSize);
     const std::size_t alignmentPadding =  padding - allocationHeaderSize;
     const std::size_t requiredSize = size + padding;
 
     // calculating a rest of affected node's memory
+    assert("Allocation: affectedNode->data.blockSize < requiredSize" && affectedNode->data.blockSize >= requiredSize);
     const std::size_t rest = affectedNode->data.blockSize - requiredSize;
 
-    if (rest > 0)
+    // an issue with Free memory fixed here: [rest >= (sizeof(Node) + alignment)] instead [rest > 0]
+    if ( rest >= (sizeof(Node) + alignment) )
     {
         // We have to split the block into the [data block] and a [free block] of size 'rest'
 
-        Node * newFreeNode = (Node *)((std::size_t) affectedNode + requiredSize);
+        Node* newFreeNode = reinterpret_cast<Node*>(reinterpret_cast<std::size_t>(affectedNode) + requiredSize);
         newFreeNode->data.blockSize = rest;
 
         m_freeList.insert(affectedNode, newFreeNode);
@@ -85,11 +84,12 @@ void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alig
     m_freeList.remove(previousNode, affectedNode);
 
     // Setup data block
-    const std::size_t headerAddress = (std::size_t) affectedNode + alignmentPadding;
+    const std::size_t headerAddress = reinterpret_cast<std::size_t>(affectedNode) + alignmentPadding;
     const std::size_t dataAddress = headerAddress + allocationHeaderSize;
 
-    ((FreeListAllocator::AllocationHeader *) headerAddress)->blockSize = requiredSize;
-    ((FreeListAllocator::AllocationHeader *) headerAddress)->padding = alignmentPadding;
+    FreeListAllocator::AllocationHeader* headerAddressPtr = reinterpret_cast<FreeListAllocator::AllocationHeader*>(headerAddress);
+    headerAddressPtr->blockSize = requiredSize;
+    headerAddressPtr->padding = alignmentPadding;
 
     m_used += requiredSize;
     m_peak = std::max(m_peak, m_used);
@@ -98,7 +98,7 @@ void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alig
     std::cout << "A" << "\t@H " << (void*) headerAddress << "\tD@ " <<(void*) dataAddress << "\tS " << ((FreeListAllocator::AllocationHeader *) headerAddress)->blockSize <<  "\tAP " << alignmentPadding << "\tP " << padding << "\tM " << m_used << "\tR " << rest << std::endl;
 #endif
 
-    return (void*) dataAddress;
+    return reinterpret_cast<void*>(dataAddress);
 }
 
 void FreeListAllocator::Find(const std::size_t size, const std::size_t alignment, std::size_t& padding, Node *& previousNode, Node *& foundNode)
@@ -115,27 +115,27 @@ void FreeListAllocator::Find(const std::size_t size, const std::size_t alignment
     }
 }
 
-//Iterate list and return the first free block with a size >= than given size
 void FreeListAllocator::FindFirst(const std::size_t size, const std::size_t alignment, std::size_t& padding, Node *& previousNode, Node *& foundNode)
 {
-    Node* it = m_freeList.head;
-    Node* itPrev {nullptr};
+    Node* _it = m_freeList.head;
+    Node* _itPrev {nullptr};
 
-    while (it != nullptr)
+    while (_it != nullptr)
     {
-        padding = Utils::CalculatePaddingWithHeader((std::size_t)it, alignment, sizeof (FreeListAllocator::AllocationHeader));
-        const std::size_t requiredSpace = size + padding;
+        const std::size_t _padding = Utils::CalculatePaddingWithHeader((std::size_t)_it, alignment, sizeof (FreeListAllocator::AllocationHeader));
+        const std::size_t _requiredSpace = size + _padding;
 
-        if (it->data.blockSize >= requiredSpace)
+        if (_it->data.blockSize >= _requiredSpace)
         {
-            previousNode = itPrev;
-            foundNode = it;
+            previousNode = _itPrev;
+            foundNode = _it;
+            padding = _padding;
 
             return;
         }
 
-        itPrev = it;
-        it = it->next;
+        _itPrev = _it;
+        _it = _it->next;
     }
 }
 
@@ -144,12 +144,12 @@ void FreeListAllocator::FindBest(const std::size_t size, const std::size_t align
 {
     std::size_t smallestDiff = std::numeric_limits<std::size_t>::max();
 
-    Node * it = m_freeList.head;
-    Node * itPrev {nullptr};
+    Node* it = m_freeList.head;
+    Node* itPrev {nullptr};
 
     while (it != nullptr)
     {
-        const std::size_t _padding = Utils::CalculatePaddingWithHeader((std::size_t)it, alignment, sizeof (FreeListAllocator::AllocationHeader));
+        const std::size_t _padding = Utils::CalculatePaddingWithHeader(reinterpret_cast<std::size_t>(it), alignment, sizeof(FreeListAllocator::AllocationHeader));
         const std::size_t requiredSpace = size + _padding;
 
         if ( (it->data.blockSize >= requiredSpace) && ((it->data.blockSize - requiredSpace) < smallestDiff) )
@@ -171,17 +171,19 @@ void FreeListAllocator::FindBest(const std::size_t size, const std::size_t align
 
 void FreeListAllocator::Free(void* ptr)
 {
-    std::lock_guard<std::mutex> guard(_mutex);
+    const std::size_t currentAddress = reinterpret_cast<std::size_t>(ptr);
 
-    // Insert it in a sorted position by the address number
-    const std::size_t currentAddress = (std::size_t) ptr;
-    const std::size_t headerAddress = currentAddress - sizeof (FreeListAllocator::AllocationHeader);
+    assert("Free: currentAddress < sizeof(FreeListAllocator::AllocationHeader)" && (currentAddress >= sizeof(FreeListAllocator::AllocationHeader)));
+    const std::size_t headerAddress = currentAddress - sizeof(FreeListAllocator::AllocationHeader);
 
-    const FreeListAllocator::AllocationHeader* allocationHeader { (FreeListAllocator::AllocationHeader*)headerAddress };
+    const FreeListAllocator::AllocationHeader* allocationHeader = reinterpret_cast<FreeListAllocator::AllocationHeader*>(headerAddress);
 
-    Node * freeNode = (Node *) (headerAddress);
+    std::size_t allocationHeaderBlockSize = allocationHeader->blockSize;
+    std::size_t allocationHeaderPadding = allocationHeader->padding;
 
-    freeNode->data.blockSize = allocationHeader->blockSize + allocationHeader->padding;
+    Node* freeNode = reinterpret_cast<Node*>(headerAddress);
+
+    freeNode->data.blockSize = allocationHeaderBlockSize + allocationHeaderPadding;
     freeNode->next = nullptr;
 
     Node * it = m_freeList.head;
@@ -197,6 +199,7 @@ void FreeListAllocator::Free(void* ptr)
         it = it->next;
     }
 
+    assert("Free: m_used < freeNode->data.blockSize" && (m_used >= freeNode->data.blockSize));
     m_used -= freeNode->data.blockSize;
 
     // Merge contiguous nodes
@@ -230,8 +233,6 @@ void FreeListAllocator::Merge(Node* previousNode, Node * freeNode)
 
 void FreeListAllocator::Reset()
 {
-    std::lock_guard<std::mutex> guard(_mutex);
-
     m_used = 0;
     m_peak = 0;
 

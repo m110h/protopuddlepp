@@ -9,7 +9,6 @@
 #include "entities.h"
 
 #include "thirdparty/allocator/freelistallocator.h"
-//#include "thirdparty/allocator/callocator.h"
 
 #include <array>
 #include <limits>
@@ -24,9 +23,7 @@ namespace ProtoPuddle
 
 Entity* entitiesTable[maxWorldWidth][maxWorldHeight] = {nullptr};
 
-mtrebi::FreeListAllocator _allocator(sizeof(Cell)*(maxWorldWidth*maxWorldHeight), mtrebi::FreeListAllocator::FIND_FIRST);
-
-//mtrebi::CAllocator _allocator;
+static mtrebi::FreeListAllocator _allocator(sizeof(Cell)*(maxWorldWidth*maxWorldHeight), mtrebi::FreeListAllocator::FIND_FIRST);
 
 World::World(GlobalProperties* _properties)
 {
@@ -625,7 +622,7 @@ void World::GenerateEntities(int type, int quantity)
         {
         case Entity::TYPE_PLANT:
             {
-                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),8);
+                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),alignment);
                 if (plt)
                 {
                     new(plt) Plant(this);
@@ -635,7 +632,7 @@ void World::GenerateEntities(int type, int quantity)
             break;
         case Entity::TYPE_CELL:
             {
-                Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),8);
+                Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),alignment);
                 if (cl)
                 {
                     new(cl) Cell(this, wxString::Format(wxT("gene%d"), i+1));
@@ -742,7 +739,7 @@ void World::DeathHandle()
 
                     {
                         e->~Entity();
-                        _allocator.Free(e);
+                        _allocator.Free(reinterpret_cast<void*>(e));
                     }
                 }
                 else if ( e->GetType() == Entity::TYPE_CELL )
@@ -751,7 +748,7 @@ void World::DeathHandle()
 
                     {
                         e->~Entity();
-                        _allocator.Free(e);
+                        _allocator.Free(reinterpret_cast<void*>(e));
                     }
 
                     entitiesTable[p.x][p.y] = nullptr;
@@ -760,7 +757,7 @@ void World::DeathHandle()
                     cellsCounter--;
 
                     {
-                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),8);
+                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),alignment);
                         if (mt)
                         {
                             new(mt) Meat(this);
@@ -768,7 +765,7 @@ void World::DeathHandle()
                         }
                         else
                         {
-                            assert("Critacal error: can't allocate memory." && 0);
+                            assert("Critacal error: can't allocate memory for Meat." && 0);
                         }
                     }
 
@@ -1194,7 +1191,7 @@ void Cell::Clone()
 
     Entity* child = nullptr;
     {
-        Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),8);
+        Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),alignment);
         if (cl)
         {
             new(cl) Cell(world, divEnergy, damage, mutationProbability, color, gen1);

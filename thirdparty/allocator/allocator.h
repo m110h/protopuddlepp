@@ -2,7 +2,6 @@
 #define ALLOCATOR_H
 
 #include <cstddef> // size_t
-#include <mutex>
 
 namespace mtrebi
 {
@@ -27,8 +26,6 @@ protected:
     std::size_t m_totalSize;
     std::size_t m_used;
     std::size_t m_peak;
-
-    std::mutex _mutex;
 };
 
 }

@@ -16,7 +16,7 @@
 
 #include "properties_singleton.h"
 
-#define PROTOPUDDLEPP_VERSION "0.6.0"
+#define PROTOPUDDLEPP_VERSION "0.6.5"
 
 class MyFrame: public wxFrame
 {
@@ -459,22 +459,13 @@ void MyFrame::UpdateMemoryInformation()
     wxString mi = wxString::Format("%s%llu%s%llu%s%llu", " [Memory in Bytes] -> Total: ", total, " | Used: ", used, " | Peak: ", peak);
     SetStatusText(mi, 2);
 
-    wxLogMessage(mi);
+    //wxLogMessage(mi);
 }
 
 static bool isStep {false};
 
 void MyFrame::Step()
 {
-    if (isStep)
-    {
-        wxLogMessage(wxT("Try to call Step during another Step is working. return."));
-        return;
-    }
-
-
-    isStep = true;
-
     world->Step();
 
     if (drawWorldFlag && worldView)
@@ -491,8 +482,6 @@ void MyFrame::Step()
     UpdateMemoryInformation();
 
     SetStatusText(wxString::Format("%s%d", "Steps: ", world->GetSteps()), 0);
-
-    isStep = false;
 }
 
 void MyFrame::ApplySettings(wxCommandEvent& event)
@@ -588,9 +577,6 @@ void MyFrame::MakeMenu()
             OnSwitchAntialiasing(event);
             break;
 #endif
-        //case myID_MENU_EDIT_SHOW_LOG:
-        //    OnShowLog(event);
-        //    break;
         case myID_MENU_EDIT_PROPERTIES:
             OnProperties(event);
             break;

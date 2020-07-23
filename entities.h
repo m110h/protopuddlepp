@@ -169,20 +169,20 @@ class Plant: public Entity
 {
 public:
     Plant(World* _world);
-    ~Plant();
+    virtual ~Plant();
 
-    void Draw(wxDC* dc) override;
-    void DrawSelected(wxDC* dc) override;
+    void Draw(wxDC* dc) final;
+    void DrawSelected(wxDC* dc) final;
 };
 
 class Meat: public Entity
 {
 public:
     Meat(World* _world);
-    ~Meat();
+    virtual ~Meat();
 
-    void Draw(wxDC* dc) override;
-    void DrawSelected(wxDC* dc) override;
+    void Draw(wxDC* dc) final;
+    void DrawSelected(wxDC* dc) final;
 };
 
 
@@ -193,11 +193,11 @@ public:
     Cell(World* _world, const wxString& geneName);
     Cell(World* _world, int _divEnergy, int _damage, int _mutationProbability, const wxColor& _color, const Gene& _gene);
 
-    ~Cell();
+    virtual ~Cell();
 
-    void Step() override;
-    void Draw(wxDC* dc) override;
-    void DrawSelected(wxDC* dc) override;
+    void Step() final;
+    void Draw(wxDC* dc) final;
+    void DrawSelected(wxDC* dc) final;
 
     bool Attack(Cell* victim);
     void SetAttacked(bool _attacked);
