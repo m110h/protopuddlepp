@@ -129,7 +129,7 @@ MyFrame::MyFrame(): wxFrame(nullptr, wxID_ANY, wxT("ProtoPuddle++"), wxDefaultPo
     Setting();
     MakeLayout();
 
-    world = new ProtoPuddle::World(PropertiesSingleton::getInstance().GetPropertiesPtr());
+    world = new ProtoPuddle::World(this, PropertiesSingleton::getInstance().GetPropertiesPtr());
     world->New();
 
     if (worldView)

@@ -24,7 +24,7 @@ class Entity;
 class World
 {
 public:
-    World(GlobalProperties* _properties);
+    World(wxFrame* _parentFrame, GlobalProperties* _properties);
     ~World();
 
     void Step();
@@ -105,6 +105,8 @@ private:
 
     wxSize worldSize {wxSize(0,0)};
     wxSize panelSize {wxSize(0,0)};
+
+    wxFrame* parentFrame {nullptr};
 };
 
 class Entity

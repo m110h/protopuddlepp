@@ -1,7 +1,7 @@
 #include "freelistallocator.h"
 #include "utils.h"  /* CalculatePaddingWithHeader */
 
-#include <stdlib.h>     /* malloc, free */
+#include <new>
 #include <cassert>   /* assert		*/
 #include <limits>  /* limits_max */
 #include <algorithm>    // std::max
@@ -20,19 +20,20 @@ FreeListAllocator::FreeListAllocator(const std::size_t totalSize, const Placemen
 
 void FreeListAllocator::Init()
 {
-    if (m_start_ptr != nullptr) {
-        free(m_start_ptr);
+    if (m_start_ptr != nullptr)
+    {
+        operator delete(m_start_ptr);
         m_start_ptr = nullptr;
     }
 
-    m_start_ptr = malloc(m_totalSize);
+    m_start_ptr = operator new(m_totalSize);
 
     this->Reset();
 }
 
 FreeListAllocator::~FreeListAllocator()
 {
-    free(m_start_ptr);
+    operator delete (m_start_ptr);
     m_start_ptr = nullptr;
 }
 

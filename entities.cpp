@@ -14,18 +14,17 @@
 #include <limits>
 #include <iomanip>
 #include <fstream>
-#include <cassert>
 #include <algorithm>
 #include <chrono>
 
 namespace ProtoPuddle
 {
 
-Entity* entitiesTable[maxWorldWidth][maxWorldHeight] = {nullptr};
-
+static Entity* entitiesTable[maxWorldWidth][maxWorldHeight] = {nullptr};
 static mtrebi::FreeListAllocator _allocator(sizeof(Cell)*(maxWorldWidth*maxWorldHeight), mtrebi::FreeListAllocator::FIND_FIRST);
+static const std::size_t _alignment = 8;
 
-World::World(GlobalProperties* _properties)
+World::World(wxFrame* _parentFrame, GlobalProperties* _properties): parentFrame(_parentFrame)
 {
     SetProperties(_properties);
     _allocator.Init();
@@ -622,7 +621,7 @@ void World::GenerateEntities(int type, int quantity)
         {
         case Entity::TYPE_PLANT:
             {
-                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant),alignment);
+                Plant* plt = (Plant*)_allocator.Allocate(sizeof(Plant), _alignment);
                 if (plt)
                 {
                     new(plt) Plant(this);
@@ -632,7 +631,7 @@ void World::GenerateEntities(int type, int quantity)
             break;
         case Entity::TYPE_CELL:
             {
-                Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),alignment);
+                Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell), _alignment);
                 if (cl)
                 {
                     new(cl) Cell(this, wxString::Format(wxT("gene%d"), i+1));
@@ -644,8 +643,6 @@ void World::GenerateEntities(int type, int quantity)
             break;
         }
 
-        assert("Critacal error: can't allocate memory." && tmp);
-
         if (tmp)
         {
             tmp->SetPosition(point);
@@ -654,6 +651,7 @@ void World::GenerateEntities(int type, int quantity)
         else
         {
             ReleasePoint(point);
+            wxLogMessage(wxT("World::GenerateEntities (Critical): can't allocate memory."));
         }
     }
 }
@@ -757,7 +755,7 @@ void World::DeathHandle()
                     cellsCounter--;
 
                     {
-                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat),alignment);
+                        Meat* mt = (Meat*)_allocator.Allocate(sizeof(Meat), _alignment);
                         if (mt)
                         {
                             new(mt) Meat(this);
@@ -765,7 +763,7 @@ void World::DeathHandle()
                         }
                         else
                         {
-                            assert("Critacal error: can't allocate memory for Meat." && 0);
+                            wxLogMessage(wxT("World::DeathHandle (Critical): can't allocate memory."));
                         }
                     }
 
@@ -1191,7 +1189,7 @@ void Cell::Clone()
 
     Entity* child = nullptr;
     {
-        Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell),alignment);
+        Cell* cl = (Cell*)_allocator.Allocate(sizeof(Cell), _alignment);
         if (cl)
         {
             new(cl) Cell(world, divEnergy, damage, mutationProbability, color, gen1);
@@ -1199,7 +1197,7 @@ void Cell::Clone()
         }
         else
         {
-            assert("Critacal error: can't allocate memory." && 0);
+            wxLogMessage(wxT("Cell::Clone (Critical): can't allocate memory."));
         }
     }
 
@@ -1217,12 +1215,12 @@ void Cell::Clone()
         }
         else
         {
-            assert("Logical error: can't lease an empty point for a child." && 0);
+            wxASSERT_MSG(0, wxT("Cell::Clone (Logical): can't lease an empty point for a child."));
         }
     }
     else
     {
-        assert("Logical error: can't move a parent cell to new position." && 0);
+        wxASSERT_MSG(0, wxT("Cell::Clone (Logical): can't move a parent cell to new position."));
     }
 }
 
