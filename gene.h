@@ -1,3 +1,11 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:               gene.h
+// Description:        ...
+// Author:             Alexey Orlov (https://github.com/m110h)
+// Last modification:  18/08/2020
+// Licence:            MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef _GENE_H_
 #define _GENE_H_
 
@@ -8,8 +16,7 @@ namespace ProtoPuddle
 
 struct Gene
 {
-    Gene() {}
-    Gene(const wxString& _name): name(_name) {}
+    explicit Gene(const wxString& _name = ""): name(_name) {}
 
     Gene(const Gene& src) {
         name = src.name;
@@ -55,6 +62,7 @@ struct Gene
     };
 
     wxString name {""};
+
     int empty {ACTION_NONE};
     int other {ACTION_NONE};
     int same {ACTION_NONE};

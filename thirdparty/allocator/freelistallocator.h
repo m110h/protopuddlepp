@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:         FreeListAllocator.h
+// Description:  ...
+// Author:       Mariano Trebino (https://github.com/mtrebi)
+// Modified by:  Alexey Orlov (https://github.com/m110h)
+// Modified:     08/08/2020
+// Licence:      MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef FREELISTALLOCATOR_H
 #define FREELISTALLOCATOR_H
 
@@ -9,44 +18,47 @@ namespace mtrebi
 
 class FreeListAllocator : public Allocator {
 public:
-    enum PlacementPolicy {
+    enum PlacementPolicy
+    {
         FIND_FIRST,
         FIND_BEST
     };
 
 private:
-    struct FreeHeader {
+    struct FreeHeader
+    {
         std::size_t blockSize;
     };
-    struct AllocationHeader {
+
+    struct AllocationHeader
+    {
         std::size_t blockSize;
-        char padding;
+        std::size_t padding;
     };
 
     typedef SinglyLinkedList<FreeHeader>::Node Node;
 
 
-    void* m_start_ptr = nullptr;
+    void* m_start_ptr {nullptr};
     PlacementPolicy m_pPolicy;
 
     SinglyLinkedList<FreeHeader> m_freeList;
 
 public:
-    FreeListAllocator(const std::size_t totalSize, const PlacementPolicy pPolicy);
+    explicit FreeListAllocator(const std::size_t totalSize, const PlacementPolicy pPolicy = PlacementPolicy::FIND_BEST);
 
-    virtual ~FreeListAllocator();
+    FreeListAllocator(FreeListAllocator &src) = delete;
+    FreeListAllocator& operator=(const FreeListAllocator& r) = delete;
+
+    ~FreeListAllocator();
 
     virtual void* Allocate(const std::size_t size, const std::size_t alignment = 0) final;
-
     virtual void Free(void* ptr) final;
-
     virtual void Init() final;
+	virtual void Reset() final;
 
-    virtual void Reset();
 private:
-    FreeListAllocator(FreeListAllocator &freeListAllocator);
-
-    void Merge(Node* prevBlock, Node * freeBlock);
+    void Merge(Node* prevBlock, Node* freeBlock);
 
     void Find(const std::size_t size, const std::size_t alignment, std::size_t& padding, Node *& previousNode, Node *& foundNode);
     void FindBest(const std::size_t size, const std::size_t alignment, std::size_t& padding, Node *& previousNode, Node *& foundNode);
@@ -56,4 +68,3 @@ private:
 }
 
 #endif /* FREELISTALLOCATOR_H */
-

@@ -1,3 +1,11 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:               main.cpp
+// Description:        ...
+// Author:             Alexey Orlov (https://github.com/m110h)
+// Last modification:  18/08/2020
+// Licence:            MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
@@ -162,7 +170,8 @@ MyFrame::MyFrame(): wxFrame(nullptr, wxID_ANY, wxT("ProtoPuddle++"), wxDefaultPo
     });
 }
 
-MyFrame::~MyFrame() {
+MyFrame::~MyFrame()
+{
     if (world)
         delete world;
 }

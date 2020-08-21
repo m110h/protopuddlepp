@@ -1,3 +1,11 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:               propertiesdialog.cpp
+// Description:        ...
+// Author:             Alexey Orlov (https://github.com/m110h)
+// Last modification:  18/08/2020
+// Licence:            MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "propertiesdialog.h"
 #include "properties_singleton.h"
 

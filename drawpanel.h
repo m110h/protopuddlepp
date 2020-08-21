@@ -1,3 +1,11 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:               drawpanel.h
+// Description:        ...
+// Author:             Alexey Orlov (https://github.com/m110h)
+// Last modification:  18/08/2020
+// Licence:            MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef _DRAW_PANEL_H_
 #define _DRAW_PANEL_H_
 

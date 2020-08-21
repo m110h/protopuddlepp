@@ -1,3 +1,11 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:               entities.cpp
+// Description:        ...
+// Author:             Alexey Orlov (https://github.com/m110h)
+// Last modification:  18/08/2020
+// Licence:            MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "wx/wxprec.h"
 
 #ifndef WX_PRECOMP
@@ -1198,6 +1206,7 @@ void Cell::Clone()
         else
         {
             wxLogMessage(wxT("Cell::Clone (Critical): can't allocate memory."));
+            return;
         }
     }
 

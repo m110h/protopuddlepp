@@ -1,3 +1,11 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:               genesframe.cpp
+// Description:        ...
+// Author:             Alexey Orlov (https://github.com/m110h)
+// Last modification:  18/08/2020
+// Licence:            MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "genesframe.h"
 
 GenesFrame::GenesFrame(wxWindow *parent, const wxSize& size): wxFrame(parent, wxID_ANY, wxT("Genes"), wxDefaultPosition, size)

@@ -1,14 +1,17 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:         FreeListAllocator.cpp
+// Description:  ...
+// Author:       Mariano Trebino (https://github.com/mtrebi)
+// Modified by:  Alexey Orlov (https://github.com/m110h)
+// Modified:     08/08/2020
+// Licence:      MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "freelistallocator.h"
 #include "utils.h"  /* CalculatePaddingWithHeader */
 
 #include <new>
-#include <cassert>   /* assert		*/
 #include <limits>  /* limits_max */
-#include <algorithm>    // std::max
-
-#if 0
-#include <iostream>
-#endif
 
 namespace mtrebi
 {
@@ -18,31 +21,35 @@ FreeListAllocator::FreeListAllocator(const std::size_t totalSize, const Placemen
     m_pPolicy = pPolicy;
 }
 
+FreeListAllocator::~FreeListAllocator()
+{
+    if (m_start_ptr != nullptr)
+    {
+        ::operator delete (m_start_ptr);
+        m_start_ptr = nullptr;
+    }
+}
+
 void FreeListAllocator::Init()
 {
     if (m_start_ptr != nullptr)
     {
-        operator delete(m_start_ptr);
+        ::operator delete(m_start_ptr);
         m_start_ptr = nullptr;
     }
 
-    m_start_ptr = operator new(m_totalSize);
+    m_start_ptr = ::operator new(m_totalSize);
 
-    this->Reset();
-}
-
-FreeListAllocator::~FreeListAllocator()
-{
-    operator delete (m_start_ptr);
-    m_start_ptr = nullptr;
+    Reset();
 }
 
 void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alignment)
 {
-    const std::size_t allocationHeaderSize = sizeof(FreeListAllocator::AllocationHeader);
+    wxASSERT_MSG(m_start_ptr, wxT("FreeListAllocator::Allocate: allocator isn't initialized, m_start_ptr is NULL"));
+    wxASSERT_MSG((size > sizeof(Node)), wxT("FreeListAllocator::Allocate: Allocation size must be bigger"));
+    wxASSERT_MSG((alignment >= 8), wxT("FreeListAllocator::Allocate: Alignment must be 8 at least"));
 
-    assert("Allocation size must be bigger" && size >= sizeof(Node));
-    assert("Alignment must be 8 at least" && alignment >= 8);
+    const std::size_t allocationHeaderSize = sizeof(FreeListAllocator::AllocationHeader);
 
     // Search through the free list for a free block that has enough space to allocate our data
 
@@ -55,24 +62,25 @@ void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alig
     // this node is placed before the affected node
     Node* previousNode {nullptr};
 
-    this->Find(size, alignment, padding, previousNode, affectedNode);
+    Find(size, alignment, padding, previousNode, affectedNode);
 
-    //assert (affectedNode != nullptr && "Not enough memory");
+    //assert (affectedNode != nullptr && "Hasn't enough memory");
     if (affectedNode == nullptr)
         return nullptr;
 
 
     // calculating the size we will take
-    assert("Allocation: padding < allocationHeaderSize" && padding >= allocationHeaderSize);
+    wxASSERT_MSG((padding >= allocationHeaderSize), wxT("FreeListAllocator::Allocate: padding < allocationHeaderSize"));
+
     const std::size_t alignmentPadding =  padding - allocationHeaderSize;
     const std::size_t requiredSize = size + padding;
 
     // calculating a rest of affected node's memory
-    assert("Allocation: affectedNode->data.blockSize < requiredSize" && affectedNode->data.blockSize >= requiredSize);
+    wxASSERT_MSG((affectedNode->data.blockSize >= requiredSize), wxT("FreeListAllocator::Allocate: affectedNode->data.blockSize < requiredSize"));
     const std::size_t rest = affectedNode->data.blockSize - requiredSize;
 
-    // an issue with Free memory fixed here: [rest >= (sizeof(Node) + alignment)] instead [rest > 0]
-    if ( rest >= (sizeof(Node) + alignment) )
+    // an issue with Free memory fixed here: [rest > sizeof(Node)] instead [rest > 0]
+    if ( rest > sizeof(Node) )
     {
         // We have to split the block into the [data block] and a [free block] of size 'rest'
 
@@ -93,11 +101,7 @@ void* FreeListAllocator::Allocate(const std::size_t size, const std::size_t alig
     headerAddressPtr->padding = alignmentPadding;
 
     m_used += requiredSize;
-    m_peak = std::max(m_peak, m_used);
-
-#if 0
-    std::cout << "A" << "\t@H " << (void*) headerAddress << "\tD@ " <<(void*) dataAddress << "\tS " << ((FreeListAllocator::AllocationHeader *) headerAddress)->blockSize <<  "\tAP " << alignmentPadding << "\tP " << padding << "\tM " << m_used << "\tR " << rest << std::endl;
-#endif
+    m_peak = (m_peak < m_used) ? m_used : m_peak;
 
     return reinterpret_cast<void*>(dataAddress);
 }
@@ -123,7 +127,7 @@ void FreeListAllocator::FindFirst(const std::size_t size, const std::size_t alig
 
     while (_it != nullptr)
     {
-        const std::size_t _padding = Utils::CalculatePaddingWithHeader((std::size_t)_it, alignment, sizeof (FreeListAllocator::AllocationHeader));
+        const std::size_t _padding = Utils::CalculatePaddingWithHeader(reinterpret_cast<std::size_t>(_it), alignment, sizeof(FreeListAllocator::AllocationHeader));
         const std::size_t _requiredSpace = size + _padding;
 
         if (_it->data.blockSize >= _requiredSpace)
@@ -172,9 +176,12 @@ void FreeListAllocator::FindBest(const std::size_t size, const std::size_t align
 
 void FreeListAllocator::Free(void* ptr)
 {
+    wxASSERT_MSG(m_start_ptr, wxT("FreeListAllocator::Free: allocator isn't initialized, m_start_ptr is NULL"));
+    wxASSERT_MSG(ptr, wxT("FreeListAllocator::Free: passed argument is NULL"));
+
     const std::size_t currentAddress = reinterpret_cast<std::size_t>(ptr);
 
-    assert("Free: currentAddress < sizeof(FreeListAllocator::AllocationHeader)" && (currentAddress >= sizeof(FreeListAllocator::AllocationHeader)));
+    wxASSERT_MSG((currentAddress >= sizeof(FreeListAllocator::AllocationHeader)), wxT("FreeListAllocator::Free: currentAddress < sizeof(FreeListAllocator::AllocationHeader)"));
     const std::size_t headerAddress = currentAddress - sizeof(FreeListAllocator::AllocationHeader);
 
     const FreeListAllocator::AllocationHeader* allocationHeader = reinterpret_cast<FreeListAllocator::AllocationHeader*>(headerAddress);
@@ -187,8 +194,8 @@ void FreeListAllocator::Free(void* ptr)
     freeNode->data.blockSize = allocationHeaderBlockSize + allocationHeaderPadding;
     freeNode->next = nullptr;
 
-    Node * it = m_freeList.head;
-    Node * itPrev = nullptr;
+    Node* it = m_freeList.head;
+    Node* itPrev = nullptr;
 
     while (it != nullptr)
     {
@@ -200,46 +207,38 @@ void FreeListAllocator::Free(void* ptr)
         it = it->next;
     }
 
-    assert("Free: m_used < freeNode->data.blockSize" && (m_used >= freeNode->data.blockSize));
+    wxASSERT_MSG((m_used >= freeNode->data.blockSize), wxT("FreeListAllocator::Free: m_used < freeNode->data.blockSize"));
     m_used -= freeNode->data.blockSize;
 
     // Merge contiguous nodes
     Merge(itPrev, freeNode);
-
-#if 0
-    std::cout << "F" << "\t@ptr " <<  ptr <<"\tH@ " << (void*) freeNode << "\tS " << freeNode->data.blockSize << "\tM " << m_used << std::endl;
-#endif
 }
 
-void FreeListAllocator::Merge(Node* previousNode, Node * freeNode)
+void FreeListAllocator::Merge(Node* previousNode, Node* freeNode)
 {
-    if (freeNode->next != nullptr && (std::size_t) freeNode + freeNode->data.blockSize == (std::size_t) freeNode->next)
+    if ( (freeNode->next != nullptr) && ( (reinterpret_cast<std::size_t>(freeNode) + freeNode->data.blockSize) == reinterpret_cast<std::size_t>(freeNode->next)) )
     {
         freeNode->data.blockSize += freeNode->next->data.blockSize;
         m_freeList.remove(freeNode, freeNode->next);
-#if 0
-        std::cout << "\tMerging(n) " << (void*) freeNode << " & " << (void*) freeNode->next << "\tS " << freeNode->data.blockSize << std::endl;
-#endif
     }
 
-    if (previousNode != nullptr && (std::size_t) previousNode + previousNode->data.blockSize == (std::size_t) freeNode)
+    if ( (previousNode != nullptr) && ( (reinterpret_cast<std::size_t>(previousNode) + previousNode->data.blockSize) == reinterpret_cast<std::size_t>(freeNode)) )
     {
         previousNode->data.blockSize += freeNode->data.blockSize;
         m_freeList.remove(previousNode, freeNode);
-#if 0
-        std::cout << "\tMerging(p) " << (void*) previousNode << " & " << (void*) freeNode << "\tS " << previousNode->data.blockSize << std::endl;
-#endif
     }
 }
 
 void FreeListAllocator::Reset()
 {
+    wxASSERT_MSG(m_start_ptr, wxT("FreeListAllocator::Reset: allocator isn't initialized, m_start_ptr is NULL"));
+
     m_used = 0;
     m_peak = 0;
 
     // create the first block that contains all of memory
 
-    Node * firstNode = (Node *) m_start_ptr;
+    Node * firstNode = reinterpret_cast<Node*>(m_start_ptr);
 
     firstNode->data.blockSize = m_totalSize;
     firstNode->next = nullptr;

@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:         Allocator.cpp
+// Description:  ...
+// Author:       Mariano Trebino (https://github.com/mtrebi)
+// Modified by:  Alexey Orlov (https://github.com/m110h)
+// Modified:     08/08/2020
+// Licence:      MIT licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "allocator.h"
 
 namespace mtrebi
@@ -5,7 +14,7 @@ namespace mtrebi
 
 Allocator::Allocator(const std::size_t totalSize): m_totalSize(totalSize), m_used(0), m_peak(0) {}
 
-Allocator::~Allocator(){
+Allocator::~Allocator() {
     m_totalSize = 0;
 }
 
