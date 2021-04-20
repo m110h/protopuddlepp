@@ -1,5 +1,5 @@
 # ProtoPuddle++
-A simulator of cells world. It is a remake of the original ProtoPuddle with an unique base of source code.
+A simulator of cells world. It is a remake of the original [ProtoPuddle](https://github.com/dem2k/Protopuddle) with an unique base of source code. You can watch a video about the project [here](https://www.youtube.com/watch?v=a0xYF_c3GrM).
 
 ## Third Party
 ProtoPuddle++ uses external projects enumerated below:
